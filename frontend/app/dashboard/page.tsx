@@ -132,7 +132,7 @@ export default function DashboardPage() {
             <StatusBadge status={tripStatus} />
           </div>
           <h1 className="text-3xl font-extrabold text-white mt-1">
-            Welcome back, Demo Traveler 👋
+            Welcome back
           </h1>
           <p className="text-slate-400 text-sm mt-0.5">
             Your travel operations concierge is actively monitoring your connected journey.

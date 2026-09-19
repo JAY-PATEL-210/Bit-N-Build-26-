@@ -15,7 +15,6 @@ import {
   CheckCircle2,
   Calendar,
   Layers,
-  ArrowRight,
   ShieldAlert,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -107,22 +106,6 @@ export default function CompanyDashboardPage() {
             <span className="text-emerald-400 font-semibold">Company Flight Operations</span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Link
-              href="/notifications"
-              className="text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1.5"
-            >
-              <span>Inspect Traveler Notifications</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-
-            <Link
-              href="/dashboard"
-              className="px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 transition"
-            >
-              Switch to Traveler View
-            </Link>
-          </div>
         </div>
 
         {/* Header with Title and Add Flight Button */}
@@ -137,7 +120,7 @@ export default function CompanyDashboardPage() {
               </span>
             </div>
             <h1 className="text-3xl font-extrabold text-white mt-1">
-              {currentUser?.companyName || 'Airline Operations Console'}
+              TravelSync Partner
             </h1>
             <p className="text-slate-400 text-sm mt-1 max-w-2xl">
               Control flight statuses, broadcast delays and cancellations with mandatory operational reasons,
