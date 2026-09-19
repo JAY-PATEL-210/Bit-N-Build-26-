@@ -62,6 +62,18 @@ app.add_middleware(
 app.include_router(api_router, prefix="/api")
 
 
+@app.get("/")
+def root():
+    return {
+        "status": "online",
+        "service": settings.PROJECT_NAME,
+        "docs": "/docs",
+        "health": "/health",
+        "api_v1": "/api",
+        "frontend": "http://localhost:3000",
+    }
+
+
 @app.get("/health")
 def health_check():
     return {
@@ -69,6 +81,7 @@ def health_check():
         "service": settings.PROJECT_NAME,
         "demo_mode": settings.DEMO_MODE,
     }
+
 
 
 if __name__ == "__main__":
