@@ -10,6 +10,8 @@ export const metadata = {
 
 import { AuthGuard } from '@/components/auth/AuthGuard';
 
+import { Footer } from '@/components/common/Footer';
+
 export default function RootLayout({
   children,
 }: {
@@ -21,12 +23,7 @@ export default function RootLayout({
         <AuthGuard>
           <Navbar />
           <main className="flex-1">{children}</main>
-          <footer className="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500">
-            <p>TravelSync Autonomous Travel-Disruption Concierge • PS-8</p>
-            <p className="mt-1 font-mono text-[11px] text-slate-600">
-              Perception → Multi-Leg Cascade Reasoning → Policy Engine → Autonomous Rebooking
-            </p>
-          </footer>
+          <Footer />
         </AuthGuard>
       </body>
     </html>
