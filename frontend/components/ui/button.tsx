@@ -3,9 +3,10 @@ import React from 'react';
 import { Loader2 } from 'lucide-react';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'outline' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'danger' | 'emerald' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
+  isLoading?: boolean;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -13,10 +14,13 @@ export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
   size = 'md',
   loading = false,
-  disabled = false,
+  isLoading = false,
   className = '',
+  disabled = false,
   ...props
 }) => {
+  const isBusy = loading || isLoading;
+
   const baseStyles =
     'inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm';
 
@@ -33,6 +37,8 @@ export const Button: React.FC<ButtonProps> = ({
       'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 focus:ring-slate-500 active:scale-[0.98]',
     danger:
       'bg-rose-600 hover:bg-rose-500 text-white focus:ring-rose-500 shadow-rose-600/20 active:scale-[0.98]',
+    emerald:
+      'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/30 focus:ring-emerald-500 active:scale-[0.98]',
     outline:
       'border border-slate-700 text-slate-300 hover:bg-slate-800/60 hover:text-white focus:ring-slate-600',
     ghost:
@@ -41,13 +47,12 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
-      disabled={disabled || loading}
+      disabled={disabled || isBusy}
       className={`${baseStyles} ${sizeStyles[size]} ${variantStyles[variant]} ${className}`}
       {...props}
     >
-      {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin shrink-0" />}
+      {isBusy && <Loader2 className="w-4 h-4 mr-2 animate-spin shrink-0" />}
       {children}
     </button>
   );
 };
-
