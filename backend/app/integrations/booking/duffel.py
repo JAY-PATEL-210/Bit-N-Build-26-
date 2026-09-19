@@ -27,8 +27,6 @@ class DuffelBookingProvider(BookingProviderBase):
         """
         logger.info(f"Booking flight (offer_id: {flight_id}) on Duffel")
         try:
-            order_creation = self.duffel.orders.create()
-            
             # Use passenger info to map to Duffel format
             # In a real app we'd map this thoroughly.
             # Here we provide a simple valid payload for the SDK
@@ -45,7 +43,13 @@ class DuffelBookingProvider(BookingProviderBase):
                 }
             ]
 
-            order = order_creation.selected_offers([flight_id]).passengers(passengers).execute()
+            order = (
+                self.duffel.orders.create()
+                .selected_offers([flight_id])
+                .passengers(passengers)
+                .type("instant")
+                .execute()
+            )
 
             logger.info(f"Successfully booked order on Duffel: {order.id}")
             return {
@@ -67,9 +71,9 @@ class DuffelBookingProvider(BookingProviderBase):
         try:
             # Assuming booking_reference here is the Order ID for simplicity.
             # In reality, you'd need the order_id to cancel via Duffel.
-            order_cancellation = self.duffel.order_cancellations.create().execute(
+            order_cancellation = self.duffel.order_cancellations.create(
                 order_id=booking_reference
-            )
+            ).execute()
             self.duffel.order_cancellations.confirm(order_cancellation.id)
 
             logger.info(f"Successfully cancelled Duffel order {booking_reference}")

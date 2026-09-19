@@ -40,19 +40,25 @@ class DuffelFlightProvider(FlightProviderBase):
         """
         logger.info(f"Searching Duffel for flights from {origin} to {destination} on {date}")
         try:
-            offer_request = self.duffel.offer_requests.create()
-            response = offer_request.slices(
-                [
-                    {
-                        "origin": origin,
-                        "destination": destination,
-                        "departure_date": date,
-                    }
-                ]
-            ).passengers([{"type": "adult"}]).cabin_class("economy").return_offers().execute()
+            offer_request_response = (
+                self.duffel.offer_requests.create()
+                .slices(
+                    [
+                        {
+                            "origin": origin,
+                            "destination": destination,
+                            "departure_date": date,
+                        }
+                    ]
+                )
+                .passengers([{"type": "adult"}])
+                .cabin_class("economy")
+                .return_offers()
+                .execute()
+            )
             
             alternatives = []
-            for offer in response.offers[:5]:  # Limit to top 5
+            for offer in offer_request_response.offers[:5]:  # Limit to top 5
                 # Simple parsing of Duffel offer
                 slice_0 = offer.slices[0]
                 segment_0 = slice_0.segments[0]

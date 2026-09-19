@@ -20,17 +20,18 @@ class AmadeusHotelProvider(HotelProviderBase):
         self.base_url = "https://test.api.amadeus.com/v2"  # Amadeus test URL
 
     def modify_reservation(
-        self, hotel_id: str, new_dates: dict, passenger_info: dict
+        self, hotel_id: str, new_check_in: str, new_check_out: str
     ) -> dict:
         """Modify an existing reservation via Amadeus."""
-        logger.info(f"Modifying Amadeus reservation {hotel_id} with new dates {new_dates}")
+        logger.info(f"Modifying Amadeus reservation {hotel_id}: check-in={new_check_in}, check-out={new_check_out}")
         
         # Real integration would authenticate, get bearer token, and make the modification request.
         # This is a skeleton implementation.
         return {
             "success": True,
             "hotel_id": hotel_id,
-            "modified_dates": new_dates,
+            "new_check_in": new_check_in,
+            "new_check_out": new_check_out,
         }
 
     def cancel_reservation(self, hotel_id: str) -> dict:
