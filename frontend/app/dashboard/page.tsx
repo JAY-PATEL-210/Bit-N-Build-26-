@@ -139,23 +139,7 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Link href="/trips">
-            <Button variant="secondary" size="sm">
-              My Trips
-            </Button>
-          </Link>
-          <Link href="/notifications">
-            <Button variant="secondary" size="sm">
-              Notifications
-            </Button>
-          </Link>
-          <Link href="/activity">
-            <Button variant="secondary" size="sm">
-              Audit Trail
-            </Button>
-          </Link>
-        </div>
+
       </div>
 
       {/* Demo Controls for Hackathon Judges (Section 33) */}

@@ -9,15 +9,10 @@ import {
   Plane,
   Bell,
   Activity,
-  Sliders,
   MapPin,
-  AlertTriangle,
   Building2,
   LogIn,
   LogOut,
-  User,
-  Radio,
-  ChevronDown,
 } from 'lucide-react';
 import { authService } from '@/services/authService';
 import { User as UserType } from '@/types/index';
@@ -48,9 +43,6 @@ export const Navbar: React.FC = () => {
   const navLinks = isCompany
     ? [
         { href: '/company/dashboard', label: 'Ops Console', icon: Building2 },
-        { href: '/disruptions/DISRUPT-001', label: 'Live Disruption', icon: AlertTriangle },
-        { href: '/activity', label: 'Audit Trail', icon: Activity },
-        { href: '/settings', label: 'Policies', icon: Sliders },
       ]
     : [
         { href: '/dashboard', label: 'Dashboard', icon: Plane },
@@ -118,14 +110,16 @@ export const Navbar: React.FC = () => {
             <span>Agent Active</span>
           </div>
 
-          {/* Demo Alert Trigger */}
-          <Link
-            href="/disruptions/DISRUPT-001"
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-950/60 hover:bg-red-900/70 border border-red-800/60 text-red-200 text-xs font-bold transition shadow-sm hover:scale-[1.02] active:scale-98"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping" />
-            <span>Simulate Disruption</span>
-          </Link>
+          {/* Demo Alert Trigger — only for Traveler role */}
+          {!isCompany && (
+            <Link
+              href="/disruptions/DISRUPT-001"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-950/60 hover:bg-red-900/70 border border-red-800/60 text-red-200 text-xs font-bold transition shadow-sm hover:scale-[1.02] active:scale-98"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping" />
+              <span>Simulate Disruption</span>
+            </Link>
+          )}
 
           {/* Authenticated User Profile & Sign Out */}
           {currentUser ? (
