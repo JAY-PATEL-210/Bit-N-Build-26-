@@ -25,12 +25,29 @@ class Settings(BaseSettings):
     FLIGHT_API_KEY: Optional[str] = None
     HOTEL_API_KEY: Optional[str] = None
     BOOKING_API_KEY: Optional[str] = None
+    DUFFEL_API_KEY: Optional[str] = None
 
     model_config = {
         "case_sensitive": True,
-        "env_file": ".env",
+        "env_file": [".env", "../.env"],
         "extra": "ignore",
     }
 
+    def model_post_init(self, __context) -> None:
+        super().model_post_init(__context)
+        duffel_token = self.DUFFEL_API_KEY or (
+            self.FLIGHT_API_KEY if self.FLIGHT_API_KEY and self.FLIGHT_API_KEY.startswith("duffel_") else None
+        ) or (
+            self.BOOKING_API_KEY if self.BOOKING_API_KEY and self.BOOKING_API_KEY.startswith("duffel_") else None
+        )
+        if duffel_token:
+            if not self.DUFFEL_API_KEY:
+                self.DUFFEL_API_KEY = duffel_token
+            if not self.FLIGHT_API_KEY:
+                self.FLIGHT_API_KEY = duffel_token
+            if not self.BOOKING_API_KEY:
+                self.BOOKING_API_KEY = duffel_token
+
 
 settings = Settings()
+
