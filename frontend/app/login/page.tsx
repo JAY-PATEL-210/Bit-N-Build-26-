@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/button';
 import { authService } from '@/services/authService';
 import { UserRole } from '@/types/index';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -43,11 +43,10 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // 3D Card Physics State
+  // 3D Card Physics State & Refs (Optimized with RAF for zero re-renders)
   const cardRef = useRef<HTMLDivElement>(null);
-  const [rotateX, setRotateX] = useState(0);
-  const [rotateY, setRotateY] = useState(0);
-  const [glarePos, setGlarePos] = useState({ x: 50, y: 50, opacity: 0 });
+  const glareRef = useRef<HTMLDivElement>(null);
+  const tiltRafRef = useRef<number | null>(null);
 
   // 3D Three.js Container Reference
   const threeContainerRef = useRef<HTMLDivElement>(null);
@@ -59,7 +58,7 @@ export default function LoginPage() {
     }
   }, [searchParams]);
 
-  // Handle 3D Mouse Parallax Tilt for Login Card
+  // Handle 3D Mouse Parallax Tilt for Login Card - Hardware-accelerated with RAF
   const handleMouseMoveCard = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
@@ -70,19 +69,32 @@ export default function LoginPage() {
 
     const rX = ((y - centerY) / centerY) * -11;
     const rY = ((x - centerX) / centerX) * 11;
-
-    setRotateX(rX);
-    setRotateY(rY);
-
     const glareX = (x / rect.width) * 100;
     const glareY = (y / rect.height) * 100;
-    setGlarePos({ x: glareX, y: glareY, opacity: 0.28 });
+
+    if (tiltRafRef.current) cancelAnimationFrame(tiltRafRef.current);
+    tiltRafRef.current = requestAnimationFrame(() => {
+      if (cardRef.current) {
+        cardRef.current.style.transform = `perspective(1200px) rotateX(${rX.toFixed(2)}deg) rotateY(${rY.toFixed(2)}deg)`;
+      }
+      if (glareRef.current) {
+        glareRef.current.style.background = `radial-gradient(circle at ${glareX.toFixed(1)}% ${glareY.toFixed(1)}%, rgba(255, 255, 255, 0.25), transparent 60%)`;
+      }
+    });
   };
 
   const handleMouseLeaveCard = () => {
-    setRotateX(0);
-    setRotateY(0);
-    setGlarePos({ x: 50, y: 50, opacity: 0 });
+    if (tiltRafRef.current) cancelAnimationFrame(tiltRafRef.current);
+    if (cardRef.current) {
+      cardRef.current.style.transition = 'transform 0.4s ease-out';
+      cardRef.current.style.transform = 'perspective(1200px) rotateX(0deg) rotateY(0deg)';
+      setTimeout(() => {
+        if (cardRef.current) cardRef.current.style.transition = '';
+      }, 400);
+    }
+    if (glareRef.current) {
+      glareRef.current.style.background = 'transparent';
+    }
   };
 
   // Full-page 3D Three.js Airplane Experience
@@ -99,9 +111,14 @@ export default function LoginPage() {
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(0, 1.5, 6.5);
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    const renderer = new THREE.WebGLRenderer({
+      alpha: true,
+      antialias: true,
+      powerPreference: 'high-performance',
+      precision: 'mediump',
+    });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.2;
     container.innerHTML = '';
@@ -314,7 +331,7 @@ export default function LoginPage() {
       mouseX = (event.clientX / window.innerWidth) * 2 - 1;
       mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
     };
-    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
 
     const onResize = () => {
       const w = container.clientWidth || window.innerWidth;
@@ -323,7 +340,7 @@ export default function LoginPage() {
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
     };
-    window.addEventListener('resize', onResize);
+    window.addEventListener('resize', onResize, { passive: true });
 
     // Clock & Animation Loop
     const clock = new THREE.Clock();
@@ -331,6 +348,8 @@ export default function LoginPage() {
 
     const animate = () => {
       animFrameId = requestAnimationFrame(animate);
+      if (document.hidden) return;
+
       const elapsedTime = clock.getElapsedTime();
 
       // Smooth mouse follow
@@ -350,15 +369,11 @@ export default function LoginPage() {
       planeGroup.rotation.x = THREE.MathUtils.degToRad(12) - targetY * 0.3 + hoverPitch;
       planeGroup.rotation.z = THREE.MathUtils.degToRad(-8) - targetX * 0.35 + hoverRoll;
 
-      // Drift particle clouds backward giving sensation of flight speed
-      const posArr = particlesGeo.attributes.position.array as Float32Array;
-      for (let i = 0; i < particleCount; i++) {
-        posArr[i * 3 + 2] += 0.04;
-        if (posArr[i * 3 + 2] > 15) {
-          posArr[i * 3 + 2] = -15;
-        }
+      // Zero-CPU GPU-only particle translation
+      particles.position.z += 0.04;
+      if (particles.position.z > 20) {
+        particles.position.z = -10;
       }
-      particlesGeo.attributes.position.needsUpdate = true;
 
       renderer.render(scene, camera);
     };
@@ -531,17 +546,15 @@ export default function LoginPage() {
               <div
                 ref={cardRef}
                 style={{
-                  transform: `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
-                  transition: rotateX === 0 && rotateY === 0 ? 'transform 0.5s ease-out' : 'none',
+                  transform: 'perspective(1200px) rotateX(0deg) rotateY(0deg)',
+                  willChange: 'transform',
                 }}
                 className="relative preserve-3d rounded-3xl bg-slate-900/90 border border-slate-700/60 p-6 sm:p-7 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] backdrop-blur-2xl space-y-4"
               >
                 {/* Specular Dynamic Glare Overlay */}
                 <div
-                  className="absolute inset-0 rounded-3xl pointer-events-none transition-opacity duration-200"
-                  style={{
-                    background: `radial-gradient(circle at ${glarePos.x}% ${glarePos.y}%, rgba(255, 255, 255, ${glarePos.opacity}), transparent 60%)`,
-                  }}
+                  ref={glareRef}
+                  className="absolute inset-0 rounded-3xl pointer-events-none transition-all duration-100"
                 />
 
                 {/* Card Header & Problem Statement Branding */}
@@ -707,5 +720,20 @@ export default function LoginPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400 font-mono text-xs gap-3">
+          <Loader2 className="w-6 h-6 text-blue-400 animate-spin" />
+          <span>Loading RoutePilot...</span>
+        </div>
+      }
+    >
+      <LoginContent />
+    </React.Suspense>
   );
 }

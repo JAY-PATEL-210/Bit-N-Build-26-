@@ -34,13 +34,17 @@ export const authService = {
    * Proposed API: POST /api/auth/signup
    */
   async signup(payload: SignupPayload): Promise<ApiResponse<AuthResponse>> {
-    // 1. Attempt live backend call if configured
+    // 1. Attempt live backend call if configured (with quick 800ms timeout)
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 800);
       const res = await fetch(`${API_BASE}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.data) {
@@ -80,13 +84,17 @@ export const authService = {
    * Proposed API: POST /api/auth/login
    */
   async login(payload: LoginPayload): Promise<ApiResponse<AuthResponse>> {
-    // 1. Attempt live backend call
+    // 1. Attempt live backend call (with quick 800ms timeout to ensure instant response)
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 800);
       const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.data) {
