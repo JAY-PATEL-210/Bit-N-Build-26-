@@ -11,7 +11,8 @@ class SignupPayload(BaseModel):
 
 class LoginPayload(BaseModel):
     email: str
-    password: Optional[str] = None  # Mock implementation won't strictly enforce password
+    password: Optional[str] = None
+    role: Optional[str] = "TRAVELER"
 
 class UserResponse(BaseModel):
     id: str

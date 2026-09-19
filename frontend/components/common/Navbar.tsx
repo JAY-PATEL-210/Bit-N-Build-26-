@@ -1,13 +1,43 @@
 'use client';
 
-// Owner: Member A (Frontend Lead) & Member B (Interaction & Demo)
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Plane, Bell, Activity, Sliders, MapPin, AlertTriangle, ListFilter, Building2, LogIn } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import {
+  Plane,
+  Bell,
+  Activity,
+  Sliders,
+  MapPin,
+  AlertTriangle,
+  ListFilter,
+  Building2,
+  LogIn,
+  LogOut,
+  UserCheck,
+} from 'lucide-react';
+import { authService } from '@/services/authService';
+import { User } from '@/types/index';
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
+  const router = useRouter();
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    setCurrentUser(authService.getCurrentUser());
+  }, [pathname]);
+
+  // Completely hide Navbar on login and signup pages
+  if (pathname === '/login' || pathname === '/signup') {
+    return null;
+  }
+
+  const handleLogout = () => {
+    authService.logout();
+    setCurrentUser(null);
+    router.replace('/login');
+  };
 
   const navLinks = [
     { href: '/dashboard', label: 'Dashboard', icon: Plane },
@@ -64,20 +94,39 @@ export const Navbar: React.FC = () => {
           </nav>
         </div>
 
-        {/* Live Status Pill & Demo Disruption */}
+        {/* User Status & Sign Out */}
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-800/80 text-[11px] font-mono text-emerald-300">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             Agent Monitoring Active
           </div>
 
-          <Link
-            href="/login"
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition"
-          >
-            <LogIn className="w-3.5 h-3.5 text-blue-400" />
-            <span>Login</span>
-          </Link>
+          {currentUser ? (
+            <div className="flex items-center gap-2">
+              <span className="hidden md:inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono text-slate-300">
+                <UserCheck className="w-3.5 h-3.5 text-blue-400" />
+                <span className="font-semibold text-white">{currentUser.name || currentUser.email}</span>
+                <span className="text-[10px] text-emerald-400 ml-1">({currentUser.role})</span>
+              </span>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-red-300 hover:text-white bg-red-950/50 hover:bg-red-900/80 border border-red-800/60 transition"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition"
+            >
+              <LogIn className="w-3.5 h-3.5 text-blue-400" />
+              <span>Login</span>
+            </Link>
+          )}
 
           <Link
             href="/disruptions/DISRUPT-001"

@@ -92,17 +92,61 @@ export const authService = {
         if (json.success && json.data) {
           saveUser(json.data.user);
           return json;
+        } else if (json.error) {
+          return {
+            success: false,
+            data: null,
+            error: typeof json.error === 'string' ? { code: 'AUTH_FAILED', message: json.error } : json.error,
+          };
         }
       }
     } catch {
-      // Fallback
+      // Backend offline or network error, proceed with client fallback
     }
 
-    // 2. Check local registered users first
+    const emailLower = payload.email.trim().toLowerCase();
+    const providedPassword = (payload.password || '').trim();
+    const roleRequested = payload.role || 'TRAVELER';
+
+    const isAuthorizedAirline =
+      ['airline@travelsync.com', 'ops@airline.com', 'airline'].includes(emailLower) &&
+      ['airline123', 'airline2026', 'admin123'].includes(providedPassword);
+
+    // 2. Strict Airline check
+    if (roleRequested === 'COMPANY' || emailLower === 'airline@travelsync.com') {
+      if (!isAuthorizedAirline) {
+        return {
+          success: false,
+          data: null,
+          error: {
+            code: 'INVALID_CREDENTIALS',
+            message: 'Access Denied: Invalid Airline Credentials. Only authorized airline partners may log in.',
+          },
+        };
+      }
+
+      const companyUser: User = {
+        id: 'USER-AIRLINE-01',
+        email: emailLower,
+        role: 'COMPANY',
+        name: 'Airline Operations Admin',
+        companyName: 'Air India / TravelSync Partner',
+        airlineCode: 'AI',
+      };
+      saveUser(companyUser);
+      return {
+        success: true,
+        data: {
+          user: companyUser,
+          token: `mock-jwt-company-${companyUser.id}`,
+        },
+        error: null,
+      };
+    }
+
+    // 3. Customer / Traveler: Any email & password is valid!
     const users = getStoredUsers();
-    const existing = users.find(
-      (u) => u.email.toLowerCase() === payload.email.trim().toLowerCase()
-    );
+    const existing = users.find((u) => u.email.toLowerCase() === emailLower);
 
     if (existing) {
       if (typeof window !== 'undefined') {
@@ -118,31 +162,24 @@ export const authService = {
       };
     }
 
-    // 3. Fallback inference based on email domain or keywords
-    const emailLower = payload.email.toLowerCase();
-    const isCompany =
-      emailLower.includes('company') ||
-      emailLower.includes('airline') ||
-      emailLower.includes('airindia') ||
-      emailLower.includes('ops') ||
-      emailLower.includes('admin');
+    const displayName = emailLower.includes('@')
+      ? emailLower.split('@')[0].replace('.', ' ').replace(/\b\w/g, (l) => l.toUpperCase())
+      : 'Traveler';
 
-    const inferredUser: User = {
+    const travelerUser: User = {
       id: `USER-${Date.now().toString().slice(-5)}`,
       email: payload.email,
-      role: isCompany ? 'COMPANY' : 'TRAVELER',
-      name: isCompany ? 'Airline Operations Admin' : 'Demo Traveler',
-      companyName: isCompany ? 'Air India Flight Ops' : undefined,
-      airlineCode: isCompany ? 'AI' : undefined,
+      role: 'TRAVELER',
+      name: displayName,
     };
 
-    saveUser(inferredUser);
+    saveUser(travelerUser);
 
     return {
       success: true,
       data: {
-        user: inferredUser,
-        token: `mock-jwt-${inferredUser.role.toLowerCase()}-${inferredUser.id}`,
+        user: travelerUser,
+        token: `mock-jwt-traveler-${travelerUser.id}`,
       },
       error: null,
     };

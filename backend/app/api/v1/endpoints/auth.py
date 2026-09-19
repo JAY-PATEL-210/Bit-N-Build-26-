@@ -57,27 +57,56 @@ def signup(payload: SignupPayload, db: Session = Depends(get_db)):
         )
     )
 
+# Authorized Airline Single-Credential Configuration
+AUTHORIZED_AIRLINE_IDENTIFIERS = {"airline@travelsync.com", "ops@airline.com", "airline"}
+AUTHORIZED_AIRLINE_PASSWORDS = {"airline123", "airline2026", "admin123"}
+
 @router.post("/login", response_model=ApiResponse)
 def login(payload: LoginPayload, db: Session = Depends(get_db)):
-    email_lower = payload.email.lower()
-    
-    user = db.query(User).filter(User.email == email_lower).first()
-    
-    if not user:
-        # Fallback: Auto-provision user based on email (Demo convenience)
-        is_company = any(k in email_lower for k in ['company', 'airline', 'airindia', 'ops', 'admin'])
+    email_lower = payload.email.strip().lower()
+    provided_password = (payload.password or "").strip()
+    role_requested = (payload.role or "TRAVELER").strip().upper()
+
+    # If the user specifically selects COMPANY role, or uses an airline identifier:
+    if role_requested == "COMPANY" or email_lower in AUTHORIZED_AIRLINE_IDENTIFIERS:
+        # STRICT CHECK: Only ONE particular airline ID and password allowed
+        if email_lower not in AUTHORIZED_AIRLINE_IDENTIFIERS or provided_password not in AUTHORIZED_AIRLINE_PASSWORDS:
+            return ApiResponse(
+                success=False,
+                error="Access Denied: Invalid Airline Credentials. Only authorized airline partners may log in."
+            )
         
-        user = User(
-            id=_generate_user_id(),
-            email=email_lower,
-            name="Airline Operations Admin" if is_company else "Demo Traveler",
-            role="COMPANY" if is_company else "TRAVELER",
-            company_name="Air India Flight Ops" if is_company else None,
-            airline_code="AI" if is_company else None
-        )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
+        # Valid airline credentials -> find or create airline user
+        user = db.query(User).filter(User.email == email_lower).first()
+        if not user:
+            user = User(
+                id=_generate_user_id(),
+                email=email_lower,
+                name="Airline Operations Admin",
+                role="COMPANY",
+                company_name="Air India / TravelSync Partner",
+                airline_code="AI"
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+    else:
+        # CUSTOMER / TRAVELER: All emails and passwords are valid!
+        user = db.query(User).filter(User.email == email_lower).first()
+        if not user:
+            # Auto-provision customer account in database
+            display_name = email_lower.split("@")[0].replace(".", " ").title() if "@" in email_lower else "Traveler"
+            user = User(
+                id=_generate_user_id(),
+                email=email_lower,
+                name=display_name,
+                role="TRAVELER",
+                company_name=None,
+                airline_code=None
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
 
     user_response = UserResponse(
         id=user.id,
