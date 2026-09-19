@@ -68,8 +68,9 @@ export default function TripsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {trips.map((trip) => {
-              const origin = trip.flights[0]?.origin || 'BOM';
-              const destination = trip.flights[trip.flights.length - 1]?.destination || 'LHR';
+              const flights = trip.flights || [];
+              const origin = flights[0]?.origin || 'BOM';
+              const destination = flights[flights.length - 1]?.destination || 'LHR';
 
               return (
                 <Card
@@ -94,7 +95,7 @@ export default function TripsPage() {
                       </div>
 
                       <div className="flex flex-col items-center">
-                        <span className="text-xs text-slate-400">{trip.flights.length} Flight Leg(s)</span>
+                        <span className="text-xs text-slate-400">{flights.length} Flight Leg(s)</span>
                         <div className="w-24 h-0.5 bg-slate-700 relative my-1">
                           <div className="absolute left-1/2 -top-1 -translate-x-1/2 w-2 h-2 rounded-full bg-blue-500"></div>
                         </div>
@@ -110,7 +111,7 @@ export default function TripsPage() {
                     </div>
 
                     <div className="flex justify-between items-center text-xs text-slate-400 pt-1">
-                      <span>Flights: {trip.flights.map((f) => f.flightNumber).join(' → ')}</span>
+                      <span>Flights: {flights.map((f) => f.flightNumber).join(' → ')}</span>
                       {trip.hotel && <span>{trip.hotel.hotelName}</span>}
                     </div>
                   </div>

@@ -13,15 +13,21 @@ def get_audit_trail(itinerary_id: str, db: Session = Depends(get_db)):
     """Complete audit trail of system events and decisions (FR-13)"""
     svc = AuditService(db)
     entries = svc.get_trail(itinerary_id)
-    data = [
-        {
+    data = []
+    for e in entries:
+        entry_dict = {
             "id": e.id, "itinerary_id": e.itinerary_id,
             "event": e.event, "actor": e.actor,
             "decision_id": e.decision_id,
             "action": e.action, "result": e.result,
-            "details": e.details,
             "timestamp": e.timestamp.isoformat() if e.timestamp else None,
         }
-        for e in entries
-    ]
+        if e.details:
+            entry_dict["decision"] = e.details.get("decision")
+            entry_dict["reason"] = e.details.get("reason")
+            entry_dict["reasonCodes"] = e.details.get("reasonCodes")
+            entry_dict["confidence"] = e.details.get("confidence")
+            # If 'metadata' key is inside details, use it, else pass details itself
+            entry_dict["metadata"] = e.details.get("metadata", e.details)
+        data.append(entry_dict)
     return ApiResponse(success=True, data=data)

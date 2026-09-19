@@ -11,10 +11,14 @@ from app.agents.decision_agent.decision_agent import DecisionAgent, AiDecisionOu
 from app.agents.guardrails import AiGuardrails
 from app.services.policy.policy_engine import PolicyEngine
 from app.integrations.flight_provider.flight_provider import MockFlightProvider, FlightProvider
+from app.integrations.flight.duffel import DuffelFlightProvider
 from app.integrations.booking.mock import MockBookingProvider
+from app.integrations.booking.duffel import DuffelBookingProvider
 from app.integrations.hotel.mock import MockHotelProvider
+from app.integrations.hotel.amadeus import AmadeusHotelProvider
 from app.integrations.notification.mock import MockNotificationProvider
 from app.utils.idempotency import generate_idempotency_key
+from app.core.config import settings
 
 logger = logging.getLogger("AutonomousTravelConcierge.Orchestrator")
 
@@ -92,15 +96,16 @@ class TravelAgentOrchestrator:
         notification_provider: Optional[MockNotificationProvider] = None,
         ai_api_key: Optional[str] = None,
         ai_model: str = "gpt-4o",
+        ai_base_url: Optional[str] = None,
     ):
         self.context_builder = ContextBuilder()
         self.flight_evaluator = FlightEvaluator()
-        self.decision_agent = DecisionAgent(api_key=ai_api_key, model=ai_model)
+        self.decision_agent = DecisionAgent(api_key=ai_api_key, model=ai_model, base_url=ai_base_url)
         self.guardrails = AiGuardrails()
 
-        self.flight_provider = flight_provider or MockFlightProvider()
-        self.booking_provider = booking_provider or MockBookingProvider()
-        self.hotel_provider = hotel_provider or MockHotelProvider()
+        self.flight_provider = flight_provider or (DuffelFlightProvider() if settings.FLIGHT_API_KEY else MockFlightProvider())
+        self.booking_provider = booking_provider or (DuffelBookingProvider() if settings.BOOKING_API_KEY else MockBookingProvider())
+        self.hotel_provider = hotel_provider or (AmadeusHotelProvider() if settings.HOTEL_API_KEY else MockHotelProvider())
         self.notification_provider = notification_provider or MockNotificationProvider()
 
     async def run_disruption_pipeline(
@@ -148,7 +153,7 @@ class TravelAgentOrchestrator:
             # Search for alternative flights
             origin = disruption_event.get("origin", "BOM")
             destination = disruption_event.get("destination", "DEL")
-            departure_date = "2026-06-10"
+            departure_date = disruption_event.get("date", "2026-09-22")
             raw_alternatives = self.flight_provider.search_alternatives(
                 origin, destination, departure_date
             )

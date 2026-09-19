@@ -67,7 +67,7 @@ export default function TripDetailsPage({ params }: { params: { id: string } }) 
     hotel: fallbackHotel,
   };
 
-  const hasCancelledFlight = isCancelled || trip.flights.some((f) => f.status === 'CANCELLED');
+  const hasCancelledFlight = isCancelled || (trip.flights || []).some((f) => f.status === 'CANCELLED');
 
   return (
     <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8 animate-fade-in text-slate-100">
@@ -204,7 +204,7 @@ export default function TripDetailsPage({ params }: { params: { id: string } }) 
         </div>
 
         <TripTimeline
-          flights={isCancelled ? fallbackFlights : trip.flights}
+          flights={isCancelled ? fallbackFlights : (trip.flights || [])}
           hotel={trip.hotel}
           isDisrupted={hasCancelledFlight}
         />

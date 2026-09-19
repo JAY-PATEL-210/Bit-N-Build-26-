@@ -96,7 +96,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                   <h4 className="font-bold text-white text-base">{item.title}</h4>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-[11px] text-slate-400 font-mono">
+                  <span className="text-[11px] text-slate-400 font-mono" suppressHydrationWarning>
                     {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                   {!item.read && (

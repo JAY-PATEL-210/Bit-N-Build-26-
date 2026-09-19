@@ -59,7 +59,7 @@ export const TripTimeline: React.FC<TripTimelineProps> = ({ flights, hotel, isDi
                   <div>
                     <span className="text-slate-500 uppercase tracking-wider text-[10px] block">From</span>
                     <span className="font-bold text-white text-sm">{flight.origin}</span>
-                    <span className="text-slate-400 block text-[11px]">
+                    <span className="text-slate-400 block text-[11px]" suppressHydrationWarning>
                       {flight.scheduledDeparture ? new Date(flight.scheduledDeparture).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '08:30 AM'}
                     </span>
                     {flight.terminal && (
@@ -80,7 +80,7 @@ export const TripTimeline: React.FC<TripTimelineProps> = ({ flights, hotel, isDi
                   <div className="sm:text-right">
                     <span className="text-slate-500 uppercase tracking-wider text-[10px] block">To</span>
                     <span className="font-bold text-white text-sm">{flight.destination}</span>
-                    <span className="text-slate-400 block text-[11px]">
+                    <span className="text-slate-400 block text-[11px]" suppressHydrationWarning>
                       {flight.scheduledArrival ? new Date(flight.scheduledArrival).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '10:45 AM'}
                     </span>
                   </div>

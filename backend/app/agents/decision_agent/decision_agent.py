@@ -56,9 +56,10 @@ class DecisionAgent:
     - The downstream RebookingService and PolicyEngine handle execution
     """
 
-    def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4o"):
+    def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4o", base_url: Optional[str] = None):
         self.api_key = api_key
         self.model = model
+        self.base_url = base_url
         self._llm_available = bool(api_key and api_key.strip())
 
         if self._llm_available:
@@ -197,8 +198,10 @@ class DecisionAgent:
         """
         try:
             from openai import OpenAI
-
-            client = OpenAI(api_key=self.api_key)
+            client_kwargs = {"api_key": self.api_key}
+            if self.base_url:
+                client_kwargs["base_url"] = self.base_url
+            client = OpenAI(**client_kwargs)
 
             system_prompt = self._build_system_prompt()
             user_prompt = self._build_user_prompt(candidate_options, policy, context)
