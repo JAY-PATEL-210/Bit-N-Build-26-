@@ -27,12 +27,14 @@ interface StatusBadgeProps {
   status: CanonicalState | string;
   size?: 'sm' | 'md';
   showIcon?: boolean;
+  label?: string;
 }
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({
   status,
   size = 'md',
   showIcon = true,
+  label,
 }) => {
   const normalized = (status || 'NORMAL').toUpperCase() as CanonicalState;
 
@@ -109,7 +111,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   return (
     <Badge variant={current.variant} pulse={current.pulse} className={sizeClass}>
       {showIcon && <Icon className={size === 'sm' ? 'w-3 h-3' : 'w-3.5 h-3.5'} />}
-      <span>{current.label}</span>
+      <span>{label || current.label}</span>
     </Badge>
   );
 };

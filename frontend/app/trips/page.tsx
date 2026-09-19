@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { Itinerary } from '../../types';
 import { itineraryService } from '../../services/itineraryService';
 import { Badge } from '../../components/ui/Badge';
+import { StatusBadge } from '../../components/ui/StatusBadge';
 import { Card } from '../../components/ui/Card';
 
 export default function TripsPage() {
@@ -75,7 +76,7 @@ export default function TripsPage() {
                   key={trip.id}
                   title={trip.tripName}
                   subtitle={`Trip ID: ${trip.id} • ${trip.startDate} to ${trip.endDate}`}
-                  badge={<Badge status={trip.status} />}
+                  badge={<StatusBadge status={trip.status} />}
                   action={
                     <Link
                       href={`/trips/${trip.id}`}

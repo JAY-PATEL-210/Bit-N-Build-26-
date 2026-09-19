@@ -7,6 +7,7 @@ import { ArrowLeft, Calendar, Zap } from 'lucide-react';
 import { TripTimeline } from '@/components/trips/TripTimeline';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { useItinerary } from '@/hooks/useItinerary';
 import { Flight, HotelBooking } from '@/types/index';
@@ -148,7 +149,7 @@ export default function TripDetailsPage({ params }: { params: { id: string } }) 
             Concierge Sentinel Status
           </span>
           <div className="flex items-center gap-2 mt-2">
-            <Badge status={hasCancelledFlight ? 'CANCELLED' : 'NORMAL'} />
+            <StatusBadge status={hasCancelledFlight ? 'CANCELLED' : 'NORMAL'} />
           </div>
           <p className="text-xs text-slate-400 mt-2">
             {hasCancelledFlight

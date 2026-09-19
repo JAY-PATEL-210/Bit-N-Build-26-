@@ -6,10 +6,12 @@ import Link from 'next/link';
 import { DemoControls } from '@/components/simulation/DemoControls';
 import { HotelModificationCard } from '@/components/hotel/HotelModificationCard';
 import { Badge } from '@/components/ui/Badge';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/Card';
 import { TripTimeline } from '@/components/trips/TripTimeline';
 import { Flight, HotelBooking } from '@/types/index';
+
 
 export default function DashboardPage() {
   const [activeScenario, setActiveScenario] = useState<string>('NORMAL');
@@ -127,7 +129,7 @@ export default function DashboardPage() {
             <span className="text-xs font-mono font-bold tracking-wider uppercase text-blue-400">
               Personal Concierge
             </span>
-            <Badge status={tripStatus} />
+            <StatusBadge status={tripStatus} />
           </div>
           <h1 className="text-3xl font-extrabold text-white mt-1">
             Welcome back, Demo Traveler 👋
@@ -204,7 +206,7 @@ export default function DashboardPage() {
         <Card className="p-4 bg-slate-900/60 border-slate-800">
           <span className="text-xs text-slate-400 block font-medium">Disruption Status</span>
           <div className="mt-1">
-            <Badge status={hasDisruption ? 'CANCELLED' : 'NORMAL'} size="sm" />
+            <StatusBadge status={hasDisruption ? 'CANCELLED' : 'NORMAL'} size="sm" />
           </div>
           <span className="text-[11px] text-slate-500 mt-1 block">
             {hasDisruption ? 'Proactive Pipeline Engaged' : 'All legs on schedule'}

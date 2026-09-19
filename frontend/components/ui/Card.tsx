@@ -1,11 +1,15 @@
 // Owner: Member A (Frontend Lead / Traveler Experience)
 import React from 'react';
 
-export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface CardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
   children: React.ReactNode;
   header?: React.ReactNode;
   footer?: React.ReactNode;
   hoverable?: boolean;
+  title?: React.ReactNode;
+  subtitle?: React.ReactNode;
+  badge?: React.ReactNode;
+  action?: React.ReactNode;
 }
 
 export const Card: React.FC<CardProps> = ({
@@ -13,6 +17,10 @@ export const Card: React.FC<CardProps> = ({
   header,
   footer,
   hoverable = false,
+  title,
+  subtitle,
+  badge,
+  action,
   className = '',
   ...props
 }) => {
@@ -23,9 +31,22 @@ export const Card: React.FC<CardProps> = ({
       } ${className}`}
       {...props}
     >
-      {header && (
+      {(header || title) && (
         <div className="px-6 py-4 border-b border-slate-800/80 flex items-center justify-between">
-          {header}
+          {header ? (
+            header
+          ) : (
+            <div className="flex items-center justify-between w-full">
+              <div>
+                {title && <h3 className="font-bold text-white text-base">{title}</h3>}
+                {subtitle && <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>}
+              </div>
+              <div className="flex items-center gap-2">
+                {badge}
+                {action}
+              </div>
+            </div>
+          )}
         </div>
       )}
       <div className="p-6">{children}</div>

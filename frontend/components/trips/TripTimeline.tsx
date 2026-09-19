@@ -3,6 +3,7 @@
 import React from 'react';
 import { Flight, HotelBooking } from '../../types';
 import { Badge } from '../ui/Badge';
+import { StatusBadge } from '../ui/StatusBadge';
 
 interface TripTimelineProps {
   flights: Flight[];
@@ -51,7 +52,7 @@ export const TripTimeline: React.FC<TripTimelineProps> = ({ flights, hotel, isDi
                       {flight.airline} <span className="text-blue-400 font-mono">({flight.flightNumber})</span>
                     </h4>
                   </div>
-                  <Badge status={flight.status} />
+                  <StatusBadge status={flight.status} />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 text-xs">
@@ -120,7 +121,7 @@ export const TripTimeline: React.FC<TripTimelineProps> = ({ flights, hotel, isDi
                   <h4 className="text-lg font-bold text-white mt-0.5">{hotel.hotelName}</h4>
                   <p className="text-xs text-slate-400">{hotel.location} • Ref: {hotel.bookingReference}</p>
                 </div>
-                <Badge status={hotel.status} label={hotel.status.replace(/_/g, ' ')} />
+                <StatusBadge status={hotel.status} label={hotel.status.replace(/_/g, ' ')} />
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs bg-slate-950 p-3 rounded-xl border border-slate-800/70">

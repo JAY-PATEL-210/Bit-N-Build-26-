@@ -17,6 +17,8 @@ env/
 .pytest_cache/
 .coverage
 htmlcov/
+*.db-shm
+*.db-wal
 
 # Environment variables & secrets
 .env
