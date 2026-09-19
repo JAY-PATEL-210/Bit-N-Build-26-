@@ -1,15 +1,16 @@
+# Owner: Member C
+from typing import Optional
 from sqlalchemy.orm import Session
-from app.models.rebooking import Rebooking
+from app.repositories.base import BaseRepository
+from app.models.itinerary import RebookingRequest
 
-class RebookingRepository:
+
+class RebookingRepository(BaseRepository[RebookingRequest]):
     def __init__(self, db: Session):
-        self.db = db
+        super().__init__(RebookingRequest, db)
 
-    def get_by_idempotency_key(self, key: str):
-        return self.db.query(Rebooking).filter(Rebooking.idempotency_key == key).first()
+    def get_by_idempotency_key(self, key: str) -> Optional[RebookingRequest]:
+        return self.db.query(RebookingRequest).filter(RebookingRequest.idempotency_key == key).first()
 
-    def create(self, rebooking: Rebooking):
-        self.db.add(rebooking)
-        self.db.commit()
-        self.db.refresh(rebooking)
-        return rebooking
+    def get_by_disruption(self, disruption_id: str):
+        return self.db.query(RebookingRequest).filter(RebookingRequest.disruption_id == disruption_id).all()

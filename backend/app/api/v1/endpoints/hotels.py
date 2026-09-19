@@ -1,15 +1,49 @@
 # Owner: Member C (Backend Lead / Core Services)
-from fastapi import APIRouter
-from app.schemas.common import ApiResponse
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from app.core.database import get_db
+from app.schemas.common import ApiResponse, ApiError
+from app.services.hotel.hotel_service import HotelService
 
 router = APIRouter()
 
-@router.get("/itineraries/{id}/hotels", response_model=ApiResponse)
-def get_hotels_for_itinerary(id: str):
-    """Get hotel reservations associated with an itinerary (FR-11)"""
-    return ApiResponse(success=True, data=[])
+
+@router.get("/itineraries/{itinerary_id}/hotels", response_model=ApiResponse)
+def get_hotels(itinerary_id: str, db: Session = Depends(get_db)):
+    """Associated hotel booking details"""
+    svc = HotelService(db)
+    hotels = svc.get_by_itinerary(itinerary_id)
+    data = [
+        {
+            "id": h.id, "itinerary_id": h.itinerary_id,
+            "hotel_name": h.hotel_name, "location": h.location,
+            "check_in": h.check_in.isoformat() if h.check_in else None,
+            "check_out": h.check_out.isoformat() if h.check_out else None,
+            "booking_reference": h.booking_reference,
+            "price": h.price, "currency": h.currency, "status": h.status,
+        }
+        for h in hotels
+    ]
+    return ApiResponse(success=True, data=data)
+
 
 @router.post("/hotels/{id}/modify", response_model=ApiResponse)
-def modify_hotel(id: str, payload: dict):
-    """Modify check-in / check-out dates after flight rebooking (FR-11, Section 39)"""
-    return ApiResponse(success=True, data={"id": id, "status": "MODIFIED", "details": payload})
+def modify_hotel(id: str, payload: dict, db: Session = Depends(get_db)):
+    """Modify hotel check-in/check-out dates"""
+    from datetime import datetime
+    svc = HotelService(db)
+    check_in = None
+    check_out = None
+    if payload.get("check_in"):
+        check_in = datetime.fromisoformat(payload["check_in"])
+    if payload.get("check_out"):
+        check_out = datetime.fromisoformat(payload["check_out"])
+    hotel = svc.modify_hotel(id, check_in=check_in, check_out=check_out)
+    if not hotel:
+        return ApiResponse(success=False, error=ApiError(code="HOTEL_NOT_FOUND", message=f"Hotel {id} not found"))
+    return ApiResponse(success=True, data={
+        "id": hotel.id, "hotel_name": hotel.hotel_name,
+        "check_in": hotel.check_in.isoformat() if hotel.check_in else None,
+        "check_out": hotel.check_out.isoformat() if hotel.check_out else None,
+        "status": hotel.status,
+    })

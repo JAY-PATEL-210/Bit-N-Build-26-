@@ -1,20 +1,27 @@
+# Owner: Member C
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
-from app.schemas.common import DisruptionType, DisruptionSeverity
 
-class DisruptionBase(BaseModel):
+
+class DisruptionResponse(BaseModel):
+    id: str
     itinerary_id: str
     segment_id: str
-    type: DisruptionType
-    severity: DisruptionSeverity
-    description: str
-
-class DisruptionResponse(DisruptionBase):
-    id: str
+    type: str
+    severity: str
     detected_at: datetime
-    status: str
+    source: str
+    description: Optional[str] = None
     impact: Optional[str] = None
+    affected_segments: Optional[List[str]] = None
+    status: str
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
+
+
+class SimulateDisruptionRequest(BaseModel):
+    event_type: str          # e.g. "CANCELLATION", "DELAY"
+    flight_id: str
+    itinerary_id: str
+    delay_minutes: Optional[int] = None
