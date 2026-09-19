@@ -15,10 +15,23 @@ Scenario 1:
 10. Notification & Audit: Traveler notified, audit log saved
 """
 
+import sys
+import os
+import asyncio
+
+# Add backend to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
+
+from simulation.simulation_engine import run_scenario_1_cancellation
+
+
 def trigger_cancellation_demo():
-    print("Triggering Disruption Event: FLIGHT_CANCELLED on AI101...")
-    # Calls POST /api/disruptions/simulate
-    pass
+    print("=" * 60)
+    print("  DEMO SCENARIO 1: Flight Cancellation → Autonomous Rebook")
+    print("=" * 60)
+    result = asyncio.run(run_scenario_1_cancellation())
+    return result
+
 
 if __name__ == "__main__":
     trigger_cancellation_demo()
