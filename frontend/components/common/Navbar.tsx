@@ -1,5 +1,7 @@
 'use client';
 
+// Owner: Member A (Frontend Lead) & Member B (Systems & Demo)
+// Clean, Role-Aware, Premium Aerospace Navigation Bar
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -10,25 +12,26 @@ import {
   Sliders,
   MapPin,
   AlertTriangle,
-  ListFilter,
   Building2,
   LogIn,
   LogOut,
-  UserCheck,
+  User,
+  Radio,
+  ChevronDown,
 } from 'lucide-react';
 import { authService } from '@/services/authService';
-import { User } from '@/types/index';
+import { User as UserType } from '@/types/index';
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserType | null>(null);
 
   useEffect(() => {
     setCurrentUser(authService.getCurrentUser());
   }, [pathname]);
 
-  // Completely hide Navbar on login and signup pages
+  // Completely hide Navbar on login and signup pages for full-screen immersion
   if (pathname === '/login' || pathname === '/signup') {
     return null;
   }
@@ -39,38 +42,51 @@ export const Navbar: React.FC = () => {
     router.replace('/login');
   };
 
-  const navLinks = [
-    { href: '/dashboard', label: 'Dashboard', icon: Plane },
-    { href: '/trips', label: 'My Trips', icon: MapPin },
-    { href: '/disruptions/DISRUPT-001', label: 'Disruption', icon: AlertTriangle },
-    { href: '/alternatives/DISRUPT-001', label: 'Alternatives', icon: ListFilter },
-    { href: '/notifications', label: 'Notifications', icon: Bell },
-    { href: '/activity', label: 'Audit Trail', icon: Activity },
-    { href: '/company/dashboard', label: 'Company Ops', icon: Building2 },
-    { href: '/settings', label: 'Policies', icon: Sliders },
-  ];
+  const isCompany = currentUser?.role === 'COMPANY';
+
+  // Role-Aware Curated Navigation Links
+  const navLinks = isCompany
+    ? [
+        { href: '/company/dashboard', label: 'Ops Console', icon: Building2 },
+        { href: '/disruptions/DISRUPT-001', label: 'Live Disruption', icon: AlertTriangle },
+        { href: '/activity', label: 'Audit Trail', icon: Activity },
+        { href: '/settings', label: 'Policies', icon: Sliders },
+      ]
+    : [
+        { href: '/dashboard', label: 'Dashboard', icon: Plane },
+        { href: '/trips', label: 'My Trips', icon: MapPin },
+        { href: '/notifications', label: 'Notifications', icon: Bell },
+        { href: '/activity', label: 'Audit Trail', icon: Activity },
+      ];
+
+  const displayName = currentUser?.name || currentUser?.email?.split('@')[0] || 'User';
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-800/90 bg-slate-950/80 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-xl transition-all">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Brand & Logo */}
-        <div className="flex items-center gap-6">
-          <Link href="/dashboard" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-emerald-400 flex items-center justify-center font-black text-white text-sm shadow-md shadow-blue-900/40 group-hover:scale-105 transition">
+        <div className="flex items-center gap-6 shrink-0">
+          <Link href={isCompany ? '/company/dashboard' : '/dashboard'} className="flex items-center gap-2.5 group">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-sky-500 to-indigo-600 flex items-center justify-center font-black text-white text-sm shadow-md shadow-sky-900/40 group-hover:scale-105 transition-transform duration-200">
               ✈
             </div>
             <div>
-              <span className="font-extrabold text-sm tracking-tight text-white block">
-                TravelSync
-              </span>
-              <span className="text-[10px] font-mono text-emerald-400 block -mt-1">
-                Autonomous Ops
+              <div className="flex items-center gap-1.5">
+                <span className="font-extrabold text-sm tracking-tight text-white group-hover:text-sky-300 transition">
+                  RoutePilot
+                </span>
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-sky-950/80 border border-sky-800/70 text-sky-400 font-semibold">
+                  PS-8
+                </span>
+              </div>
+              <span className="text-[10px] text-slate-400 block -mt-0.5 font-medium">
+                Autonomous Disruption Concierge
               </span>
             </div>
           </Link>
 
-          {/* Nav Links */}
-          <nav className="hidden lg:flex items-center gap-1 text-xs font-medium">
+          {/* Clean Role-Specific Nav Links */}
+          <nav className="hidden md:flex items-center gap-1 text-xs font-medium">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const isActive =
@@ -80,42 +96,63 @@ export const Navbar: React.FC = () => {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-150 ${
                     isActive
-                      ? 'bg-slate-800 text-white font-semibold'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-900/80'
+                      ? 'bg-sky-500/15 border border-sky-500/40 text-sky-300 font-semibold shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/70 border border-transparent'
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5" />
-                  {link.label}
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-sky-400' : 'text-slate-400'}`} />
+                  <span>{link.label}</span>
                 </Link>
               );
             })}
           </nav>
         </div>
 
-        {/* User Status & Sign Out */}
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-800/80 text-[11px] font-mono text-emerald-300">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Agent Monitoring Active
+        {/* Right Side: Status, Demo Disruption Trigger & User Profile */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          {/* Autonomous Status Pill */}
+          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/60 border border-emerald-800/60 text-[11px] font-mono text-emerald-300 shadow-inner">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Agent Active</span>
           </div>
 
-          {currentUser ? (
-            <div className="flex items-center gap-2">
-              <span className="hidden md:inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono text-slate-300">
-                <UserCheck className="w-3.5 h-3.5 text-blue-400" />
-                <span className="font-semibold text-white">{currentUser.name || currentUser.email}</span>
-                <span className="text-[10px] text-emerald-400 ml-1">({currentUser.role})</span>
-              </span>
+          {/* Demo Alert Trigger */}
+          <Link
+            href="/disruptions/DISRUPT-001"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-950/60 hover:bg-red-900/70 border border-red-800/60 text-red-200 text-xs font-bold transition shadow-sm hover:scale-[1.02] active:scale-98"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping" />
+            <span>Simulate Disruption</span>
+          </Link>
 
+          {/* Authenticated User Profile & Sign Out */}
+          {currentUser ? (
+            <div className="flex items-center gap-1.5 pl-1 border-l border-slate-800/80">
+              {/* Profile Chip */}
+              <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-slate-900/80 border border-slate-800 text-xs">
+                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-[10px] font-bold text-white shadow-inner">
+                  {displayName.charAt(0).toUpperCase()}
+                </div>
+                <div className="hidden sm:flex flex-col text-left leading-tight">
+                  <span className="font-semibold text-slate-200 max-w-[110px] truncate text-[11px]">
+                    {displayName}
+                  </span>
+                  <span className="text-[9px] font-mono text-sky-400 font-bold uppercase tracking-wider">
+                    {currentUser.role === 'COMPANY' ? 'Airline Ops' : 'Traveler'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Sign Out Action */}
               <button
                 type="button"
                 onClick={handleLogout}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-red-300 hover:text-white bg-red-950/50 hover:bg-red-900/80 border border-red-800/60 transition"
+                title="Sign Out"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-red-300 hover:bg-red-950/50 border border-transparent hover:border-red-800/60 transition"
               >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>Sign Out</span>
+                <LogOut className="w-4 h-4" />
               </button>
             </div>
           ) : (
@@ -123,18 +160,10 @@ export const Navbar: React.FC = () => {
               href="/login"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition"
             >
-              <LogIn className="w-3.5 h-3.5 text-blue-400" />
+              <LogIn className="w-3.5 h-3.5 text-sky-400" />
               <span>Login</span>
             </Link>
           )}
-
-          <Link
-            href="/disruptions/DISRUPT-001"
-            className="px-3 py-1.5 rounded-lg bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-200 text-xs font-bold transition flex items-center gap-1.5"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping"></span>
-            Demo Disruption
-          </Link>
         </div>
       </div>
     </header>
