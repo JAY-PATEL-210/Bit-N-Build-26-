@@ -1,0 +1,7 @@
+{
+  "eventType": "MISSED_CONNECTION",
+  "incomingFlightId": "AI101",
+  "connectingFlightId": "AI203",
+  "itineraryId": "TRIP-001",
+  "timestamp": "2026-09-19T08:30:00Z"
+}

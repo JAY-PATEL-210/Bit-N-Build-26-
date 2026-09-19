@@ -1,0 +1,9 @@
+{
+  "eventType": "FLIGHT_CANCELLED",
+  "flightId": "AI101",
+  "airline": "Air India",
+  "origin": "BOM",
+  "destination": "DEL",
+  "itineraryId": "TRIP-001",
+  "timestamp": "2026-09-19T08:30:00Z"
+}

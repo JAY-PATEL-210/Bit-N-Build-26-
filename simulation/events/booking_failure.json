@@ -1,0 +1,7 @@
+{
+  "eventType": "BOOKING_FAILURE",
+  "disruptionId": "DIS-001",
+  "alternativeId": "ALT-102",
+  "reason": "SEATS_UNAVAILABLE_DURING_CONFIRMATION",
+  "timestamp": "2026-09-19T08:30:00Z"
+}

@@ -1,0 +1,19 @@
+[
+  {
+    "scenario_id": "SCENARIO_1_CANCELLATION",
+    "eventType": "FLIGHT_CANCELLED",
+    "flightId": "AI101",
+    "origin": "BOM",
+    "destination": "DEL",
+    "itineraryId": "TRIP-001",
+    "timestamp": "2026-09-19T08:30:00Z"
+  },
+  {
+    "scenario_id": "SCENARIO_2_MISSED_CONNECTION",
+    "eventType": "FLIGHT_DELAYED",
+    "flightId": "AI101",
+    "delayMinutes": 180,
+    "itineraryId": "TRIP-001",
+    "timestamp": "2026-09-19T08:30:00Z"
+  }
+]
