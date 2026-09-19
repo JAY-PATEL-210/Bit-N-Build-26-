@@ -5,6 +5,7 @@ from app.core.database import get_db
 from app.schemas.common import ApiResponse, ApiError
 from app.schemas.rebooking import RebookingCreate, RebookingPreviewRequest
 from app.services.rebooking.rebooking_service import RebookingService
+from app.utils.casing import to_camel_case
 
 router = APIRouter()
 
@@ -17,7 +18,7 @@ def preview_rebooking(payload: RebookingPreviewRequest, db: Session = Depends(ge
     disruption = db.query(Disruption).filter(Disruption.id == payload.disruption_id).first()
     if not alt or not disruption:
         return ApiResponse(success=False, error=ApiError(code="NOT_FOUND", message="Alternative or disruption not found"))
-    return ApiResponse(success=True, data={
+    return ApiResponse(success=True, data=to_camel_case({
         "disruption_id": disruption.id,
         "alternative": {
             "id": alt.id, "flight_number": alt.flight_number,
@@ -28,7 +29,7 @@ def preview_rebooking(payload: RebookingPreviewRequest, db: Session = Depends(ge
             "policy_compliant": alt.policy_compliant,
             "score": alt.score, "recommended": alt.recommended,
         },
-    })
+    }))
 
 
 @router.post("", response_model=ApiResponse)
@@ -40,7 +41,7 @@ def initiate_rebooking(payload: RebookingCreate, db: Session = Depends(get_db)):
         alternative_id=payload.alternative_id,
         idempotency_key=payload.idempotency_key,
     )
-    return ApiResponse(success=True, data=result)
+    return ApiResponse(success=True, data=to_camel_case(result))
 
 
 @router.post("/{id}/approve", response_model=ApiResponse)
@@ -48,7 +49,7 @@ def approve_rebooking(id: str, db: Session = Depends(get_db)):
     """User approves alternative requiring confirmation (FR-10)"""
     svc = RebookingService(db)
     result = svc.approve(id)
-    return ApiResponse(success=True, data=result)
+    return ApiResponse(success=True, data=to_camel_case(result))
 
 
 @router.post("/{id}/reject", response_model=ApiResponse)
@@ -56,7 +57,7 @@ def reject_rebooking(id: str, db: Session = Depends(get_db)):
     """User rejects proposed rebooking"""
     svc = RebookingService(db)
     result = svc.reject(id)
-    return ApiResponse(success=True, data=result)
+    return ApiResponse(success=True, data=to_camel_case(result))
 
 
 @router.get("/{id}", response_model=ApiResponse)
@@ -66,4 +67,4 @@ def get_rebooking(id: str, db: Session = Depends(get_db)):
     result = svc.get_by_id(id)
     if not result:
         return ApiResponse(success=False, error=ApiError(code="REBOOKING_NOT_FOUND", message=f"Rebooking {id} not found"))
-    return ApiResponse(success=True, data=result)
+    return ApiResponse(success=True, data=to_camel_case(result))

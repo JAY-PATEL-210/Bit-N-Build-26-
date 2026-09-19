@@ -1,10 +1,11 @@
-﻿# Owner: Member C (Backend Lead / Core Services)
+# Owner: Member C (Backend Lead / Core Services)
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.schemas.common import ApiResponse, ApiError
 from app.schemas.disruption import SimulateDisruptionRequest
 from app.services.disruption.disruption_service import DisruptionService
+from app.utils.casing import to_camel_case
 
 router = APIRouter()
 
@@ -15,13 +16,13 @@ def get_disruptions(db: Session = Depends(get_db)):
     svc = DisruptionService(db)
     items = svc.get_all_active()
     data = [
-        {
+        to_camel_case({
             "id": d.id, "itinerary_id": d.itinerary_id, "segment_id": d.segment_id,
             "type": d.type, "severity": d.severity,
             "detected_at": d.detected_at.isoformat() if d.detected_at else None,
             "description": d.description, "impact": d.impact,
             "affected_segments": d.affected_segments, "status": d.status,
-        }
+        })
         for d in items
     ]
     return ApiResponse(success=True, data=data)
@@ -34,13 +35,13 @@ def get_disruption(id: str, db: Session = Depends(get_db)):
     d = svc.get_by_id(id)
     if not d:
         return ApiResponse(success=False, error=ApiError(code="DISRUPTION_NOT_FOUND", message=f"Disruption {id} not found"))
-    return ApiResponse(success=True, data={
+    return ApiResponse(success=True, data=to_camel_case({
         "id": d.id, "itinerary_id": d.itinerary_id, "segment_id": d.segment_id,
         "type": d.type, "severity": d.severity,
         "detected_at": d.detected_at.isoformat() if d.detected_at else None,
         "source": d.source, "description": d.description, "impact": d.impact,
         "affected_segments": d.affected_segments, "status": d.status,
-    })
+    }))
 
 
 @router.get("/{id}/alternatives", response_model=ApiResponse)
@@ -49,7 +50,7 @@ def get_alternatives(id: str, db: Session = Depends(get_db)):
     svc = DisruptionService(db)
     alts = svc.get_alternatives(id)
     data = [
-        {
+        to_camel_case({
             "id": a.id, "disruption_id": a.disruption_id,
             "airline": a.airline, "flight_number": a.flight_number,
             "origin": a.origin, "destination": a.destination,
@@ -61,7 +62,7 @@ def get_alternatives(id: str, db: Session = Depends(get_db)):
             "policy_violations": a.policy_violations,
             "score": a.score, "explanation": a.explanation,
             "recommended": a.recommended,
-        }
+        })
         for a in alts
     ]
     return ApiResponse(success=True, data=data)
@@ -81,7 +82,7 @@ def simulate_disruption(payload: SimulateDisruptionRequest, db: Session = Depend
             itinerary_id=payload.itinerary_id,
             delay_minutes=payload.delay_minutes or 0,
         )
-        return ApiResponse(success=True, data={
+        return ApiResponse(success=True, data=to_camel_case({
             "disruption_id": disruption.id,
             "type": disruption.type,
             "severity": disruption.severity,
@@ -89,6 +90,6 @@ def simulate_disruption(payload: SimulateDisruptionRequest, db: Session = Depend
             "impact": disruption.impact,
             "affected_segments": disruption.affected_segments,
             "status": disruption.status,
-        })
+        }))
     except ValueError as e:
         return ApiResponse(success=False, error=ApiError(code="SIMULATION_ERROR", message=str(e)))

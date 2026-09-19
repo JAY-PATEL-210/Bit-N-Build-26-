@@ -1,5 +1,7 @@
-from typing import Optional
+from typing import Optional, Any
 from pydantic import BaseModel
+from app.schemas.common import ApiResponse, ApiError  # noqa: F401 — canonical response
+
 
 class SignupPayload(BaseModel):
     email: str
@@ -26,8 +28,3 @@ class UserResponse(BaseModel):
 class AuthResponse(BaseModel):
     user: UserResponse
     token: str
-
-class ApiResponse(BaseModel):
-    success: bool
-    data: Optional[AuthResponse] = None
-    error: Optional[str] = None

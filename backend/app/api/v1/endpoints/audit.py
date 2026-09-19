@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.schemas.common import ApiResponse, ApiError
 from app.services.audit.audit_service import AuditService
+from app.utils.casing import to_camel_case
 
 router = APIRouter()
 
@@ -29,5 +30,5 @@ def get_audit_trail(itinerary_id: str, db: Session = Depends(get_db)):
             entry_dict["confidence"] = e.details.get("confidence")
             # If 'metadata' key is inside details, use it, else pass details itself
             entry_dict["metadata"] = e.details.get("metadata", e.details)
-        data.append(entry_dict)
+        data.append(to_camel_case(entry_dict))
     return ApiResponse(success=True, data=data)

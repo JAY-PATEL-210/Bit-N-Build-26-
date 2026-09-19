@@ -1,4 +1,4 @@
-﻿# Owner: Member C (Backend Lead / Core Services)
+# Owner: Member C (Backend Lead / Core Services)
 # ──────────────────────────────────────────────────────────────────────────────
 # Itinerary Service  --  Trip management with full segment graph (FR-02)
 # ──────────────────────────────────────────────────────────────────────────────
@@ -68,6 +68,7 @@ class ItineraryService:
             "status": itin.status,
             "flights": flights,
             "hotels": hotels,
+            "hotel": hotels[0] if hotels else None,
         }
 
     def update_status(self, itinerary_id: str, new_status: str) -> Optional[Itinerary]:

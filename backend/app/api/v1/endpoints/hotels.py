@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.schemas.common import ApiResponse, ApiError
 from app.services.hotel.hotel_service import HotelService
+from app.utils.casing import to_camel_case
 
 router = APIRouter()
 
@@ -14,14 +15,14 @@ def get_hotels(itinerary_id: str, db: Session = Depends(get_db)):
     svc = HotelService(db)
     hotels = svc.get_by_itinerary(itinerary_id)
     data = [
-        {
+        to_camel_case({
             "id": h.id, "itinerary_id": h.itinerary_id,
             "hotel_name": h.hotel_name, "location": h.location,
             "check_in": h.check_in.isoformat() if h.check_in else None,
             "check_out": h.check_out.isoformat() if h.check_out else None,
             "booking_reference": h.booking_reference,
             "price": h.price, "currency": h.currency, "status": h.status,
-        }
+        })
         for h in hotels
     ]
     return ApiResponse(success=True, data=data)
@@ -41,9 +42,9 @@ def modify_hotel(id: str, payload: dict, db: Session = Depends(get_db)):
     hotel = svc.modify_hotel(id, check_in=check_in, check_out=check_out)
     if not hotel:
         return ApiResponse(success=False, error=ApiError(code="HOTEL_NOT_FOUND", message=f"Hotel {id} not found"))
-    return ApiResponse(success=True, data={
+    return ApiResponse(success=True, data=to_camel_case({
         "id": hotel.id, "hotel_name": hotel.hotel_name,
         "check_in": hotel.check_in.isoformat() if hotel.check_in else None,
         "check_out": hotel.check_out.isoformat() if hotel.check_out else None,
         "status": hotel.status,
-    })
+    }))

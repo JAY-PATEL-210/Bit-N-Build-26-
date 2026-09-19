@@ -3,7 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.itinerary import User
-from app.schemas.auth import SignupPayload, LoginPayload, AuthResponse, ApiResponse, UserResponse
+from app.schemas.auth import SignupPayload, LoginPayload, AuthResponse, UserResponse
+from app.schemas.common import ApiResponse, ApiError
 
 router = APIRouter()
 
@@ -22,7 +23,7 @@ def signup(payload: SignupPayload, db: Session = Depends(get_db)):
     if existing:
         return ApiResponse(
             success=False,
-            error="User with this email already exists"
+            error=ApiError(code="USER_EXISTS", message="User with this email already exists")
         )
     
     # Create new user
@@ -73,7 +74,7 @@ def login(payload: LoginPayload, db: Session = Depends(get_db)):
         if email_lower not in AUTHORIZED_AIRLINE_IDENTIFIERS or provided_password not in AUTHORIZED_AIRLINE_PASSWORDS:
             return ApiResponse(
                 success=False,
-                error="Access Denied: Invalid Airline Credentials. Only authorized airline partners may log in."
+                error=ApiError(code="INVALID_CREDENTIALS", message="Access Denied: Invalid Airline Credentials. Only authorized airline partners may log in.")
             )
         
         # Valid airline credentials -> find or create airline user

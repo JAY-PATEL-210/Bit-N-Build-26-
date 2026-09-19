@@ -1,5 +1,5 @@
 # Owner: Member C
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
 
@@ -21,7 +21,10 @@ class DisruptionResponse(BaseModel):
 
 
 class SimulateDisruptionRequest(BaseModel):
-    event_type: str          # e.g. "CANCELLATION", "DELAY"
-    flight_id: str
-    itinerary_id: str
-    delay_minutes: Optional[int] = None
+    event_type: str = Field(alias="eventType")
+    flight_id: str = Field(alias="flightId")
+    itinerary_id: str = Field(alias="itineraryId")
+    delay_minutes: Optional[int] = Field(None, alias="delayMinutes")
+
+    model_config = {"populate_by_name": True}
+
