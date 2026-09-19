@@ -84,7 +84,7 @@ export const AuditTimeline: React.FC<AuditTimelineProps> = ({ logs, isLoading })
                     </span>
                   </div>
 
-                  <span className="text-[11px] font-mono text-slate-400">
+                  <span className="text-[11px] font-mono text-slate-400" suppressHydrationWarning>
                     {new Date(entry.timestamp).toLocaleTimeString([], {
                       hour: '2-digit',
                       minute: '2-digit',
@@ -138,10 +138,15 @@ export const AuditTimeline: React.FC<AuditTimelineProps> = ({ logs, isLoading })
         })}
       </div>
 
-      {/* Detail Inspection Modal */}
       {selectedLog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in duration-150">
-          <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl p-6 space-y-4">
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in duration-150"
+          onClick={() => setSelectedLog(null)}
+        >
+          <div 
+            className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex justify-between items-start border-b border-slate-800 pb-3">
               <div>
                 <span className="text-[11px] font-mono uppercase text-blue-400 font-bold block">
@@ -175,7 +180,41 @@ export const AuditTimeline: React.FC<AuditTimelineProps> = ({ logs, isLoading })
                   <span className="text-slate-500 block">Result</span>
                   <span className="text-emerald-400 font-mono font-bold">{selectedLog.result}</span>
                 </div>
+                {selectedLog.decisionId && (
+                  <div>
+                    <span className="text-slate-500 block">Decision ID</span>
+                    <span className="text-blue-400 font-mono">{selectedLog.decisionId}</span>
+                  </div>
+                )}
+                {selectedLog.decision && (
+                  <div>
+                    <span className="text-slate-500 block">Decision</span>
+                    <span className="text-white font-mono font-bold">{selectedLog.decision}</span>
+                  </div>
+                )}
+                {selectedLog.confidence !== undefined && (
+                  <div>
+                    <span className="text-slate-500 block">Confidence</span>
+                    <span className="text-purple-400 font-mono font-bold">{Math.round(selectedLog.confidence * 100)}%</span>
+                  </div>
+                )}
               </div>
+
+              {selectedLog.reasonCodes && selectedLog.reasonCodes.length > 0 && (
+                <div>
+                  <span className="text-slate-400 font-semibold block mb-1">Reason Codes:</span>
+                  <div className="flex flex-wrap gap-1">
+                    {selectedLog.reasonCodes.map((code) => (
+                      <span
+                        key={code}
+                        className="px-2 py-1 rounded text-[11px] font-mono bg-slate-950 text-emerald-400 border border-slate-800"
+                      >
+                        #{code}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div>
                 <span className="text-slate-400 font-semibold block mb-1">Reason / Rationale:</span>
@@ -188,7 +227,12 @@ export const AuditTimeline: React.FC<AuditTimelineProps> = ({ logs, isLoading })
                 <div>
                   <span className="text-slate-400 font-semibold block mb-1">Raw Execution Metadata:</span>
                   <pre className="p-3 rounded bg-slate-950 border border-slate-800 text-[11px] text-emerald-300 font-mono overflow-x-auto max-h-40">
-                    {JSON.stringify(selectedLog.metadata, null, 2)}
+                    {typeof selectedLog.metadata === 'string'
+                      ? (function() {
+                          try { return JSON.stringify(JSON.parse(selectedLog.metadata), null, 2); }
+                          catch { return selectedLog.metadata; }
+                        })()
+                      : JSON.stringify(selectedLog.metadata, null, 2)}
                   </pre>
                 </div>
               )}

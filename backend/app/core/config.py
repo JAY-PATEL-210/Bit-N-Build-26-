@@ -1,4 +1,4 @@
-﻿# Owner: Member C (Backend Lead / Core Services)
+# Owner: Member C (Backend Lead / Core Services)
 from pydantic_settings import BaseSettings
 from typing import Optional
 
@@ -20,6 +20,11 @@ class Settings(BaseSettings):
 
     # Demo mode -- auto-seed sample data on startup
     DEMO_MODE: bool = True
+
+    # External Provider APIs
+    FLIGHT_API_KEY: Optional[str] = None
+    HOTEL_API_KEY: Optional[str] = None
+    BOOKING_API_KEY: Optional[str] = None
 
     model_config = {
         "case_sensitive": True,

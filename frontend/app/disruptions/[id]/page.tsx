@@ -60,7 +60,7 @@ export default function DisruptionPage({ params }: { params: { id: string } }) {
                 Disruption ID: {params.id}
               </span>
             </div>
-            <span className="text-xs text-slate-400 font-mono">
+            <span className="text-xs text-slate-400 font-mono" suppressHydrationWarning>
               Detected: {disruption ? new Date(disruption.detectedAt).toLocaleTimeString() : '08:00:00 AM'}
             </span>
           </div>
