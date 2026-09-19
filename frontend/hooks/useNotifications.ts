@@ -41,7 +41,26 @@ export function useNotifications() {
   };
 
   const markAllAsRead = async () => {
+    try {
+      await notificationService.markAllAsRead();
+    } catch {
+      // Fallback
+    }
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  };
+
+  const addComment = async (id: string, message: string) => {
+    const res = await notificationService.commentOnNotification(id, { message });
+    if (res.success && res.data) {
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === id
+            ? { ...n, comments: res.data?.comments || [...(n.comments || []), message] }
+            : n
+        )
+      );
+    }
+    return res;
   };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -53,6 +72,7 @@ export function useNotifications() {
     unreadCount,
     markAsRead,
     markAllAsRead,
+    addComment,
     refresh: fetchNotifications,
   };
 }

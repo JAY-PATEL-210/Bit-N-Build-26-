@@ -8,7 +8,7 @@ import { useNotifications } from '../../hooks/useNotifications';
 import { NotificationCenter } from '../../components/notifications/NotificationCenter';
 
 export default function NotificationsPage() {
-  const { notifications, loading, unreadCount, markAsRead, markAllAsRead, refresh } =
+  const { notifications, loading, unreadCount, markAsRead, markAllAsRead, addComment, refresh } =
     useNotifications();
 
   return (
@@ -55,6 +55,7 @@ export default function NotificationsPage() {
           notifications={notifications}
           onMarkAsRead={markAsRead}
           onMarkAllAsRead={markAllAsRead}
+          onCommentAdded={addComment}
           isLoading={loading}
         />
       </div>

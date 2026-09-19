@@ -134,6 +134,7 @@ export interface Disruption {
   requiresApproval?: boolean;
   approvalReason?: string;
   recommendedAlternativeId?: string;
+  reason?: string | null;
 }
 
 export interface RebookingRequest {
@@ -168,7 +169,63 @@ export interface NotificationItem {
   hotelChanges?: string;
   additionalCost?: string;
   confirmationNumber?: string;
+  reason?: string | null;
+  comments?: string[];
 }
+
+export type UserRole = "TRAVELER" | "COMPANY";
+
+export interface User {
+  id: string;
+  email: string;
+  role: UserRole;
+  name?: string;
+  phone?: string;
+  companyName?: string;
+  airlineCode?: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  token?: string;
+}
+
+export interface SignupPayload {
+  role: UserRole;
+  email: string;
+  password?: string;
+  name?: string;
+  phone?: string;
+  companyName?: string;
+  airlineCode?: string;
+}
+
+export interface LoginPayload {
+  email: string;
+  password?: string;
+}
+
+export interface CreateFlightPayload {
+  flightNumber: string;
+  airline: string;
+  origin: string;
+  destination: string;
+  scheduledDeparture: string;
+  scheduledArrival: string;
+  terminal?: string;
+  gate?: string;
+}
+
+export interface CancelFlightPayload {
+  reason: string;
+}
+
+export interface DelayFlightPayload {
+  reason: string;
+  newDepartureTime: string;
+  newArrivalTime: string;
+}
+
 
 export interface AuditLogEntry {
   id: string;

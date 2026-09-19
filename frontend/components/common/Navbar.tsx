@@ -4,7 +4,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Plane, Bell, Activity, Sliders, MapPin, AlertTriangle, ListFilter } from 'lucide-react';
+import { Plane, Bell, Activity, Sliders, MapPin, AlertTriangle, ListFilter, Building2, LogIn } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
@@ -16,6 +16,7 @@ export const Navbar: React.FC = () => {
     { href: '/alternatives/DISRUPT-001', label: 'Alternatives', icon: ListFilter },
     { href: '/notifications', label: 'Notifications', icon: Bell },
     { href: '/activity', label: 'Audit Trail', icon: Activity },
+    { href: '/company/dashboard', label: 'Company Ops', icon: Building2 },
     { href: '/settings', label: 'Policies', icon: Sliders },
   ];
 
@@ -69,6 +70,14 @@ export const Navbar: React.FC = () => {
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             Agent Monitoring Active
           </div>
+
+          <Link
+            href="/login"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition"
+          >
+            <LogIn className="w-3.5 h-3.5 text-blue-400" />
+            <span>Login</span>
+          </Link>
 
           <Link
             href="/disruptions/DISRUPT-001"
