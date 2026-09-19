@@ -8,10 +8,12 @@ from app.api.v1.endpoints import (
     hotels,
     notifications,
     audit,
+    auth,
 )
 
 api_router = APIRouter()
 
+api_router.include_router(auth.router, prefix="/auth", tags=["Auth"])
 api_router.include_router(itineraries.router, prefix="/itineraries", tags=["Itineraries"])
 api_router.include_router(flights.router, prefix="/flights", tags=["Flights"])
 api_router.include_router(disruptions.router, prefix="/disruptions", tags=["Disruptions"])

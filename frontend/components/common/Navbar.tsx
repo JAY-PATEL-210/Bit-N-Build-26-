@@ -31,7 +31,7 @@ export const Navbar: React.FC = () => {
             </div>
             <div>
               <span className="font-extrabold text-sm tracking-tight text-white block">
-                Travel Concierge
+                TravelSync
               </span>
               <span className="text-[10px] font-mono text-emerald-400 block -mt-1">
                 Autonomous Ops

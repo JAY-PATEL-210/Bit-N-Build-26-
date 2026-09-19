@@ -1,4 +1,4 @@
-﻿# Owner: Member C (Backend Lead / Core Services)
+# Owner: Member C (Backend Lead / Core Services)
 # ──────────────────────────────────────────────────────────────────────────────
 # Canonical Database Models  --  Single source of truth for the entire ORM.
 # All per-entity model files (user.py, flight.py ...) re-export from here.
@@ -24,6 +24,9 @@ class User(Base):
     name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
     phone = Column(String)
+    role = Column(String, default="TRAVELER")
+    company_name = Column(String)
+    airline_code = Column(String)
 
     preferences = relationship("TravelPreferences", back_populates="user", uselist=False, cascade="all, delete-orphan")
     itineraries = relationship("Itinerary", back_populates="user", cascade="all, delete-orphan")
