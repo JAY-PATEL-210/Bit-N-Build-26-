@@ -3,7 +3,9 @@ import sys
 import os
 import asyncio
 
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
+
 
 from simulation.simulation_engine import run_scenario_1_cancellation
 
