@@ -3,7 +3,25 @@ from pydantic_settings import BaseSettings
 from typing import Optional
 
 
+# Apply global fix for duffel_api bug where missing allowed_passenger_identity_document_types causes KeyError
+try:
+    from duffel_api.models.offer import Offer
+    _orig_offer_from_json = Offer.from_json
+
+    @classmethod
+    def _safe_offer_from_json(cls, json_data: dict):
+        if isinstance(json_data, dict) and "allowed_passenger_identity_document_types" not in json_data:
+            json_data = dict(json_data)
+            json_data["allowed_passenger_identity_document_types"] = []
+        return _orig_offer_from_json(json_data)
+
+    Offer.from_json = _safe_offer_from_json
+except Exception:
+    pass
+
+
 class Settings(BaseSettings):
+
     PROJECT_NAME: str = "Autonomous Travel-Disruption Concierge"
     API_V1_STR: str = "/api"
 

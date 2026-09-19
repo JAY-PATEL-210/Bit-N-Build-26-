@@ -36,18 +36,31 @@ class DuffelBookingProvider(BookingProviderBase):
         logger.info(f"Booking flight (offer_id: {flight_id}) on Duffel")
         try:
             # Use passenger info to map to Duffel format
-            passengers = [
-                {
-                    "type": "adult",
-                    "title": "mr",
-                    "born_on": "1980-01-01",
-                    "given_name": (passenger_info.get("name") or "John Doe").split()[0],
-                    "family_name": (passenger_info.get("name") or "John Doe").split()[-1],
-                    "gender": "m",
-                    "email": passenger_info.get("email", "test@example.com"),
-                    "phone_number": "+447700900000",
-                }
-            ]
+            # In Duffel, order passengers must reference the passenger ID from the offer
+            passenger_id = None
+            try:
+                offer = self.duffel.offers.get(flight_id)
+                if offer and offer.passengers:
+                    passenger_id = offer.passengers[0].id
+            except Exception:
+                pass
+
+            passenger_data = {
+                "type": "adult",
+                "title": "mr",
+                "born_on": "1980-01-01",
+                "given_name": (passenger_info.get("name") or "John Doe").split()[0],
+                "family_name": (passenger_info.get("name") or "John Doe").split()[-1],
+                "gender": "m",
+                "email": passenger_info.get("email", "test@example.com"),
+                "phone_number": "+442079460000",
+            }
+
+            if passenger_id:
+                passenger_data["id"] = passenger_id
+
+            passengers = [passenger_data]
+
 
             order = (
                 self.duffel.orders.create()
