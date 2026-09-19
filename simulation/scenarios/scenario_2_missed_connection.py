@@ -1,15 +1,18 @@
 # Scenario 2: Normal -> Delayed -> Missed Connection Risk
-import requests
+import sys
+import os
+import asyncio
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
+
+from simulation.simulation_engine import run_scenario_2_missed_connection
+
 
 def run():
     print("Running Scenario 2: Delay causing Missed Connection...")
-    res = requests.post("http://localhost:8000/api/disruptions/simulate", json={
-        "eventType": "FLIGHT_DELAYED",
-        "flightId": "AI101",
-        "delayMinutes": 180,
-        "itineraryId": "TRIP-001"
-    })
-    print("Response:", res.json())
+    result = asyncio.run(run_scenario_2_missed_connection())
+    return result
+
 
 if __name__ == "__main__":
     run()
