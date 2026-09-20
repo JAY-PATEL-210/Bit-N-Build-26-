@@ -1,118 +1,98 @@
-# TravelSync (Autonomous Travel-Disruption Concierge)
+<div align="center">
+  <img src="docs/screenshots/logo.png" alt="RoutePilot Logo" width="120" />
+  <h1>RoutePilot</h1>
+  <p><strong>The Autonomous Travel-Disruption Concierge</strong></p>
+  <p><em>Built for Bit-N-Build '26</em></p>
+  
+  [![Next.js](https://img.shields.io/badge/Frontend-Next.js-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+  [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+  [![TailwindCSS](https://img.shields.io/badge/Styling-Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+</div>
 
-**TravelSync** is a proactive, intelligent travel operations agent that autonomously detects travel disruptions and coordinates the necessary actions on behalf of the traveler. Built as a prototype for the Bit N Build hackathon, it shifts the burden of managing cancellations and missed connections from the traveler to an intelligent agentic system.
+<br />
 
-Instead of simply displaying "Your flight has been cancelled," TravelSync understands the cascading impact across the itinerary, finds valid alternatives, evaluates them against travel policies, executes rebooking, adjusts hotel reservations, and informs the traveler with a complete audit trail.
+## 🚨 The Problem
+
+When a flight is delayed or cancelled, travelers are plunged into a chaotic nightmare. They spend hours on hold with customer service, frantically trying to rebook connecting flights and adjust hotel reservations before they lose their money. Meanwhile, airlines lose millions in operational inefficiencies and customer dissatisfaction. **The travel industry’s disruption management is reactive, manual, and broken.**
+
+## ✨ Our Solution: RoutePilot
+
+**RoutePilot** is an autonomous travel-disruption concierge that completely automates the recovery process. When an airline announces a delay or cancellation, RoutePilot’s intelligent backend instantly:
+1. **Detects** the disruption in real-time.
+2. **Evaluates** the downstream impact (e.g., will the traveler miss their connection? Will they arrive after hotel check-in?).
+3. **Autonomously Re-plans** the itinerary by finding and securing alternative flights and adjusting accommodation dates.
+4. **Notifies** the traveler with a fully updated, stress-free itinerary.
+
+### Why This Wins
+
+- **Complete End-to-End Execution**: We built a fully functional multi-user architecture with both a Traveler Dashboard and an Airline Operations Center.
+- **Flawless UI/UX**: A highly polished, animated, and responsive user interface that looks like a premium, production-ready product.
+- **Complex State Management**: The backend autonomously evaluates a graph of connected travel segments, handling edge cases like missing connections and hotel rebookings seamlessly.
+
+---
+
+## 📸 See It In Action
+
+### The Traveler Timeline
+A beautiful, node-based visual graph that tracks the user's journey. When disruptions occur, the UI instantly highlights the impacted segments and provides the downstream rebooking status.
+
+![Traveler Timeline](docs/screenshots/traveler_timeline.png)
+
+### Airline Operations Dashboard
+A powerful operations console where airline staff can broadcast delays or cancellations. Our backend processes these events and instantly pushes autonomous recovery actions to the affected travelers.
+
+![Company Dashboard](docs/screenshots/company_dashboard.png)
 
 ---
 
 ## 🚀 Key Features
 
-*   **Live Travel Monitoring:** Continuously tracks flight status across active itineraries.
-*   **Intelligent Disruption Detection:** Identifies cascading downstream consequences (e.g., a delayed flight making a connecting flight infeasible).
-*   **Autonomous Decision Engine:**
-    *   **Safe to Automate:** Autonomously rebooks flights when options exist within policy limits.
-    *   **Requires Approval:** Escalates to human approval for fare increases, major itinerary changes, or out-of-policy alternatives.
-*   **Explainable AI Decisions:** AI agent recommendations are strictly structured, deterministic, and validated by backend business rules. Every decision includes a clear human-readable explanation.
-*   **Hotel Synchronization:** Automatically adjusts hotel check-in/out dates or cancels reservations based on new flight arrival times.
-*   **Comprehensive Audit Logging:** Every autonomous action, API request, and state change is securely logged for tracing and accountability.
+* **Multi-Actor System:** Features distinct experiences for Travelers and Airline Operations.
+* **Autonomous Replanning Engine:** Algorithms that calculate minimum connection times and autonomously query alternative routes when thresholds are breached.
+* **Interactive Disruption Simulation:** We built a dedicated "Activity" hub to simulate real-world delays and cancellations, proving our backend logic works in real-time.
+* **Smart Downstream Syncing:** If you miss your connection, RoutePilot doesn't just rebook your flight—it automatically updates your destination hotel reservation to match your new arrival time.
+* **Glassmorphic & Fluid Design:** The UI utilizes advanced CSS, backdrop blurs, and smooth micro-animations for an unparalleled user experience.
+
+## 🛠️ Tech Stack
+
+**Frontend:**
+* Next.js 14 (App Router)
+* React & TypeScript
+* Tailwind CSS
+* Lucide Icons
+
+**Backend:**
+* Python 3 & FastAPI
+* SQLAlchemy (ORM)
+* SQLite (Zero-config embedded database)
+* Uvicorn (ASGI Web Server)
 
 ---
 
-## 🛠️ System Architecture
+## ⚙️ Getting Started (Local Development)
 
-The application is built on a 5-layer autonomous engineering principle:
-1. **Perception**: Detect disruptions.
-2. **Reasoning**: Understand impact & find alternatives.
-3. **Policy**: Determine what is allowed (Budget, Stops, Time).
-4. **Action**: Execute flight bookings and hotel changes.
-5. **Verification**: Confirm changes, notify users, and record audits.
-
-### Technology Stack
-
-**Frontend**
-*   **Framework:** Next.js / React (TypeScript)
-*   **Styling:** Tailwind CSS
-*   **Icons & Animation:** Lucide React, Framer Motion
-*   **State & Real-time:** Standard React Hooks, polling/WebSockets for live status updates
-
-**Backend**
-*   **Framework:** FastAPI (Python)
-*   **Database:** SQLite / SQLAlchemy (ORM)
-*   **Validation:** Pydantic
-*   **Integrations Layer:** Duffel API (Flights), Amadeus API (Hotels), Mock APIs for Simulation
-
-**AI & Orchestration Layer**
-*   **Design:** A multi-agent orchestration pattern (Context Agent, Flight Agent, Policy Agent, Decision Agent).
-*   **Guardrails:** AI never directly executes transactions. AI proposes structured decisions `->` Backend Rules Validate `->` Adapters Execute.
-
----
-
-## 📂 Project Structure
-
-```text
-autonomous-travel-concierge/
-│
-├── frontend/
-│   ├── app/                # Next.js App Router (Dashboard, Trips, Disruptions, Login, etc.)
-│   ├── components/         # Reusable UI (Navbar, Alternative Cards, Timelines, Modals)
-│   ├── hooks/              # Custom React hooks (useDisruption, useRebooking, etc.)
-│   ├── services/           # Frontend API Clients
-│   └── types/              # Canonical TypeScript interfaces matching backend models
-│
-├── backend/
-│   ├── app/
-│   │   ├── api/            # FastAPI Route Endpoints
-│   │   ├── models/         # SQLAlchemy Database Models (Single source of truth)
-│   │   ├── schemas/        # Pydantic Schemas for Data Validation
-│   │   ├── services/       # Core Business Logic (Monitoring, Policies, Hotels, Audit)
-│   │   ├── agents/         # AI Orchestration & Decision Agents
-│   │   └── integrations/   # External API Adapters (Duffel, Amadeus)
-│   ├── main.py             # FastAPI Entry Point
-│   └── requirements.txt    # Python dependencies
-│
-└── docs/                   # System Requirement Specifications (SRS) & API Contracts
-```
-
----
-
-## 🚦 Getting Started
-
-### 1. Backend Setup (FastAPI)
-Navigate to the backend directory and set up the Python environment:
+### 1. Start the Backend
 ```bash
 cd backend
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-```
-Run the FastAPI development server:
-```bash
-python main.py
-```
-*(The backend will run on `http://localhost:8000`. On startup, it automatically creates the local SQLite database `concierge.db` and provisions demo data if `DEMO_MODE` is active).*
 
-### 2. Frontend Setup (Next.js)
-Navigate to the frontend directory and install the Node modules:
+# The database will automatically seed itself with demo data on startup!
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+### 2. Start the Frontend
 ```bash
 cd frontend
 npm install
-```
-Start the Next.js development server:
-```bash
 npm run dev
 ```
-*(The frontend will run on `http://localhost:3000`).*
+
+Visit `http://localhost:3000` to access the application.
 
 ---
 
-## 🔒 Security & Constraints
-*   **Rule Engine Precedence:** AI **cannot** override the deterministic policy engine.
-*   **API Agnosticism:** The system interacts with airline and hotel APIs via an adapter interface (e.g. `FlightProviderInterface`), allowing mock and real implementations to be swapped without changing core business logic. 
-*   **Idempotency:** Rebooking workflows rely on strict idempotency keys to prevent duplicate transactions.
-
----
-
-## 👥 Roles
-*   **Traveler:** Can view itineraries, approve/reject escalated actions, configure travel policies, and monitor live disruption status.
-*   **Airline / Company Ops:** Dedicated dashboard to view system-wide disruptions, agent performance, and manual overrides.
+<div align="center">
+  <p>Made with ❤️ by team Bit N Built-26</p>
+</div>
