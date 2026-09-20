@@ -10,7 +10,7 @@ export const metadata = {
 
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { Footer } from '@/components/common/Footer';
-import { AmbientIllusionCanvas } from '@/components/common/AmbientIllusionCanvas';
+import { BackgroundGate } from '@/components/layout/BackgroundGate';
 
 export default function RootLayout({
   children,
@@ -20,12 +20,13 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="min-h-screen bg-slate-950 text-slate-100 antialiased flex flex-col font-sans selection:bg-indigo-500/30 selection:text-indigo-200 relative overflow-x-hidden">
-        <AmbientIllusionCanvas />
-        <AuthGuard>
-          <Navbar />
-          <main className="flex-1 relative z-10">{children}</main>
-          <Footer />
-        </AuthGuard>
+        <BackgroundGate>
+          <AuthGuard>
+            <Navbar />
+            <main className="flex-1 relative z-10">{children}</main>
+            <Footer />
+          </AuthGuard>
+        </BackgroundGate>
       </body>
     </html>
   );
