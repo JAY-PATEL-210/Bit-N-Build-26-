@@ -36,7 +36,7 @@ When a flight is delayed or cancelled, travelers are plunged into a chaotic nigh
 ### 1. Connected Trip Timeline & Simulation Engine
 A beautiful, node-based visual graph that tracks the traveler's journey. We built a dedicated Simulation Engine (Judge Presentation Controls) to simulate real-world delays, cancellations, and missed connections in real-time.
 
-![Simulation Engine & Timeline](docs/screenshots/dashboard.jpg)
+![Simulation Engine & Timeline](docs/screenshots/dashboard.png)
 
 ### 2. AI Decision Engine (Ranked Alternatives)
 When a disruption occurs, the autonomous concierge evaluates thousands of routing permutations. It ranks them based on corporate travel policies, connection buffers, and AI confidence scoring.
