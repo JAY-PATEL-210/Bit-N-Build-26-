@@ -97,7 +97,7 @@ export const AddFlightModal: React.FC<AddFlightModalProps> = ({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Flight Number <span className="text-red-400">*</span>
+                Flight Number <span className="text-rose-400">*</span>
               </label>
               <input
                 type="text"
@@ -111,7 +111,7 @@ export const AddFlightModal: React.FC<AddFlightModalProps> = ({
 
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Airline Name <span className="text-red-400">*</span>
+                Airline Name <span className="text-rose-400">*</span>
               </label>
               <input
                 type="text"
@@ -127,7 +127,7 @@ export const AddFlightModal: React.FC<AddFlightModalProps> = ({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Origin IATA <span className="text-red-400">*</span>
+                Origin IATA <span className="text-rose-400">*</span>
               </label>
               <input
                 type="text"
@@ -142,7 +142,7 @@ export const AddFlightModal: React.FC<AddFlightModalProps> = ({
 
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Destination IATA <span className="text-red-400">*</span>
+                Destination IATA <span className="text-rose-400">*</span>
               </label>
               <input
                 type="text"
@@ -159,7 +159,7 @@ export const AddFlightModal: React.FC<AddFlightModalProps> = ({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Scheduled Departure <span className="text-red-400">*</span>
+                Scheduled Departure <span className="text-rose-400">*</span>
               </label>
               <input
                 type="datetime-local"
@@ -172,7 +172,7 @@ export const AddFlightModal: React.FC<AddFlightModalProps> = ({
 
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Scheduled Arrival <span className="text-red-400">*</span>
+                Scheduled Arrival <span className="text-rose-400">*</span>
               </label>
               <input
                 type="datetime-local"

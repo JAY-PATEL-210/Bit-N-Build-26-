@@ -26,7 +26,7 @@ export const TripTimeline: React.FC<TripTimelineProps> = ({ flights, hotel, isDi
               <div
                 className={`absolute -left-[41px] top-1.5 w-6 h-6 rounded-full border-4 border-slate-950 flex items-center justify-center text-[10px] font-bold ${
                   isCancelled
-                    ? 'bg-red-500 text-white ring-4 ring-red-950'
+                    ? 'bg-rose-500 text-white ring-4 ring-rose-950'
                     : isDelayed
                     ? 'bg-amber-500 text-white ring-4 ring-amber-950'
                     : 'bg-blue-600 text-white ring-4 ring-blue-950'
@@ -39,7 +39,7 @@ export const TripTimeline: React.FC<TripTimelineProps> = ({ flights, hotel, isDi
               <div
                 className={`p-5 rounded-2xl border transition-all duration-300 illusion-card ${
                   isCancelled
-                    ? 'bg-red-950/25 border-red-800/80 shadow-lg shadow-red-950/30'
+                    ? 'bg-rose-950/25 border-rose-800/80 shadow-lg shadow-rose-950/30'
                     : isDelayed
                     ? 'bg-amber-950/20 border-amber-800/70 shadow-lg shadow-amber-950/20'
                     : 'bg-slate-900/90 border-slate-800/90 hover:border-sky-500/40'
@@ -51,7 +51,7 @@ export const TripTimeline: React.FC<TripTimelineProps> = ({ flights, hotel, isDi
                       Leg 0{idx + 1} • Flight Segment
                     </span>
                     <h4 className="text-lg font-bold text-white mt-0.5">
-                      {flight.airline} <span className="text-blue-400 font-mono">({flight.flightNumber})</span>
+                      {flight.airline} <span className="text-sky-400 font-mono">({flight.flightNumber})</span>
                     </h4>
                   </div>
                   <StatusBadge status={flight.status} />
@@ -75,7 +75,7 @@ export const TripTimeline: React.FC<TripTimelineProps> = ({ flights, hotel, isDi
                       <div className="absolute right-0 -top-1 w-2 h-2 border-t-2 border-r-2 border-slate-400 rotate-45"></div>
                     </div>
                     {flight.gate && (
-                      <span className="text-[10px] text-blue-400 font-mono">{flight.gate}</span>
+                      <span className="text-[10px] text-sky-400 font-mono">{flight.gate}</span>
                     )}
                   </div>
 
@@ -89,7 +89,7 @@ export const TripTimeline: React.FC<TripTimelineProps> = ({ flights, hotel, isDi
                 </div>
 
                 {isCancelled && (
-                  <div className="mt-3 p-2.5 rounded-lg bg-red-950/50 border border-red-800 text-red-300 text-xs">
+                  <div className="mt-3 p-2.5 rounded-lg bg-rose-950/50 border border-rose-800 text-rose-300 text-xs">
                     ⚠️ <strong>Disruption Broadcast:</strong> This flight was cancelled by the carrier. Downstream connections are triggered for autonomous replanning.
                   </div>
                 )}
@@ -109,16 +109,16 @@ export const TripTimeline: React.FC<TripTimelineProps> = ({ flights, hotel, isDi
         {/* Destination Hotel */}
         {hotel && (
           <div className="relative group">
-            {/* Timeline Pin */}
-            <div className="absolute -left-[41px] top-1.5 w-6 h-6 rounded-full border-4 border-slate-950 bg-purple-600 text-white flex items-center justify-center text-xs ring-4 ring-purple-950">
+            {/* Timeline Pin: Indigo for Downstream Accomodation Synchronization */}
+            <div className="absolute -left-[41px] top-1.5 w-6 h-6 rounded-full border-4 border-slate-950 bg-indigo-600 text-white flex items-center justify-center text-xs ring-4 ring-indigo-950">
               🏨
             </div>
 
-            <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition space-y-3">
+            <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-indigo-800/50 transition space-y-3">
               <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-2 border-b border-slate-800/80 pb-3">
                 <div>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-purple-400 font-bold block">
-                    Accommodation • End Milestone
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-400 font-bold block">
+                    Accommodation • Downstream Sync Milestone
                   </span>
                   <h4 className="text-lg font-bold text-white mt-0.5">{hotel.hotelName}</h4>
                   <p className="text-xs text-slate-400">{hotel.location} • Ref: {hotel.bookingReference}</p>

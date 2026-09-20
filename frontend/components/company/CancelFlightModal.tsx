@@ -63,7 +63,7 @@ export const CancelFlightModal: React.FC<CancelFlightModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
       <div className="relative w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-red-950/30">
+        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-rose-950/30">
           <div className="flex items-center gap-2 text-rose-400">
             <XCircle className="w-5 h-5" />
             <h3 className="font-bold text-white text-base">Cancel Flight {flight.flightNumber}</h3>

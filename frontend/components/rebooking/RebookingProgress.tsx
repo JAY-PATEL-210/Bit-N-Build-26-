@@ -53,8 +53,8 @@ export const RebookingProgress: React.FC<RebookingProgressProps> = ({
                 isConfirmed
                   ? 'bg-emerald-950 text-emerald-400 border border-emerald-700'
                   : isFailed
-                  ? 'bg-red-950 text-red-400 border border-red-700'
-                  : 'bg-blue-950 text-blue-400 border border-blue-700 animate-pulse'
+                  ? 'bg-rose-950 text-rose-400 border border-rose-700'
+                  : 'bg-indigo-950 text-indigo-400 border border-indigo-700 animate-pulse'
               }`}
             >
               {isConfirmed ? 'CONFIRMED' : isFailed ? 'FAILED' : 'IN_PROGRESS'}
@@ -110,7 +110,7 @@ export const RebookingProgress: React.FC<RebookingProgressProps> = ({
 
         {/* Error Alert */}
         {isFailed && (
-          <div className="p-3 rounded-lg bg-red-950/50 border border-red-800 text-red-300 text-xs space-y-1">
+          <div className="p-3 rounded-lg bg-rose-950/50 border border-rose-800 text-rose-300 text-xs space-y-1">
             <p className="font-bold">Execution Stopped:</p>
             <p>{error || 'Provider booking failed or seat inventory expired.'}</p>
           </div>
@@ -139,7 +139,7 @@ export const RebookingProgress: React.FC<RebookingProgressProps> = ({
           {isFailed && onRetry && (
             <button
               onClick={onRetry}
-              className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-semibold transition"
+              className="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold transition"
             >
               Retry Autonomous Rebooking
             </button>

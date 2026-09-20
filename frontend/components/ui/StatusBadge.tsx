@@ -61,8 +61,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
       pulse: true,
     },
     ANALYZING: {
-      label: 'Analyzing Impact',
-      variant: 'purple',
+      label: 'AI Analyzing Impact',
+      variant: 'ai',
       icon: Sparkles,
       pulse: true,
     },
@@ -79,8 +79,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
       pulse: true,
     },
     REBOOKING: {
-      label: 'Rebooking Flight',
-      variant: 'info',
+      label: 'Autonomous Rebooking',
+      variant: 'ai',
       icon: RefreshCw,
       pulse: true,
     },

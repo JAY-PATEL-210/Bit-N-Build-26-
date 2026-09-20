@@ -1,7 +1,7 @@
 // Owner: Member A (Frontend Lead / Traveler Experience)
 import React from 'react';
 
-export type BadgeVariant = 'success' | 'warning' | 'danger' | 'info' | 'purple' | 'neutral';
+export type BadgeVariant = 'success' | 'warning' | 'danger' | 'info' | 'purple' | 'ai' | 'neutral';
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: BadgeVariant;
@@ -16,11 +16,12 @@ export const Badge: React.FC<BadgeProps> = ({
   ...props
 }) => {
   const variantStyles: Record<BadgeVariant, string> = {
-    success: 'bg-emerald-950/60 border-emerald-800/80 text-emerald-300',
-    warning: 'bg-amber-950/60 border-amber-800/80 text-amber-300',
-    danger: 'bg-rose-950/60 border-rose-800/80 text-rose-300',
-    info: 'bg-blue-950/60 border-blue-800/80 text-blue-300',
-    purple: 'bg-purple-950/60 border-purple-800/80 text-purple-300',
+    success: 'bg-emerald-950/70 border-emerald-800/80 text-emerald-300 shadow-sm shadow-emerald-950/20',
+    warning: 'bg-amber-950/70 border-amber-800/80 text-amber-300 shadow-sm shadow-amber-950/20',
+    danger: 'bg-rose-950/70 border-rose-800/80 text-rose-300 shadow-sm shadow-rose-950/20',
+    info: 'bg-sky-950/70 border-sky-800/80 text-sky-300 shadow-sm shadow-sky-950/20',
+    purple: 'bg-indigo-950/70 border-indigo-800/80 text-indigo-300 shadow-sm shadow-indigo-950/20',
+    ai: 'bg-indigo-950/70 border-indigo-800/80 text-indigo-300 shadow-sm shadow-indigo-950/20',
     neutral: 'bg-slate-900 border-slate-700 text-slate-300',
   };
 
@@ -28,8 +29,9 @@ export const Badge: React.FC<BadgeProps> = ({
     success: 'bg-emerald-400',
     warning: 'bg-amber-400',
     danger: 'bg-rose-400',
-    info: 'bg-blue-400',
-    purple: 'bg-purple-400',
+    info: 'bg-sky-400',
+    purple: 'bg-indigo-400',
+    ai: 'bg-indigo-400',
     neutral: 'bg-slate-400',
   };
 

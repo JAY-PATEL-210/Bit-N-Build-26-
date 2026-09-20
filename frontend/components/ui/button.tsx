@@ -3,7 +3,7 @@ import React from 'react';
 import { Loader2 } from 'lucide-react';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'emerald' | 'outline' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'danger' | 'emerald' | 'success' | 'warning' | 'ai' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   isLoading?: boolean;
@@ -39,6 +39,12 @@ export const Button: React.FC<ButtonProps> = ({
       'bg-rose-600 hover:bg-rose-500 text-white focus:ring-rose-500 shadow-rose-600/20 active:scale-[0.98]',
     emerald:
       'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/30 focus:ring-emerald-500 active:scale-[0.98]',
+    success:
+      'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/30 focus:ring-emerald-500 active:scale-[0.98]',
+    warning:
+      'bg-amber-600 hover:bg-amber-500 text-white shadow-lg shadow-amber-900/30 focus:ring-amber-500 active:scale-[0.98]',
+    ai:
+      'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-900/30 focus:ring-indigo-500 active:scale-[0.98]',
     outline:
       'border border-slate-700 text-slate-300 hover:bg-slate-800/60 hover:text-white focus:ring-slate-600',
     ghost:

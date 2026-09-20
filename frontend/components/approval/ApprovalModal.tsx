@@ -94,7 +94,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
           <button
             onClick={onReject}
             disabled={isLoading}
-            className="px-4 py-2 rounded-lg bg-red-950 hover:bg-red-900 text-red-200 border border-red-800 text-xs font-semibold transition"
+            className="px-4 py-2 rounded-lg bg-rose-950 hover:bg-rose-900 text-rose-200 border border-rose-800 text-xs font-semibold transition"
           >
             [ Reject Option ]
           </button>

@@ -28,7 +28,7 @@ export default function DisruptionPage({ params }: { params: { id: string } }) {
           <div className="flex items-center gap-2">
             <Link href="/dashboard" className="hover:text-white transition">Dashboard</Link>
             <span>/</span>
-            <span className="text-red-400 font-semibold">Disruption ({params.id})</span>
+            <span className="text-rose-400 font-semibold">Disruption ({params.id})</span>
           </div>
 
           <div className="flex gap-2">
@@ -50,10 +50,10 @@ export default function DisruptionPage({ params }: { params: { id: string } }) {
         />
 
         {/* Main Disruption Banner */}
-        <div className="p-6 rounded-2xl bg-gradient-to-r from-red-950/60 via-slate-900 to-slate-900 border border-red-800/80 shadow-2xl space-y-4">
+        <div className="p-6 rounded-2xl bg-gradient-to-r from-rose-950/70 via-slate-900 to-slate-900 border border-rose-800/80 shadow-2xl space-y-4">
           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
             <div className="flex items-center gap-2.5">
-              <span className="px-3 py-1 rounded-full text-xs font-black tracking-wider uppercase bg-red-900 text-red-200 border border-red-700 animate-pulse">
+              <span className="px-3 py-1 rounded-full text-xs font-black tracking-wider uppercase bg-rose-900 text-rose-200 border border-rose-700 animate-pulse">
                 {disruption?.severity || 'CRITICAL'} DISRUPTION DETECTED
               </span>
               <span className="text-xs font-mono text-slate-400">
@@ -97,22 +97,22 @@ export default function DisruptionPage({ params }: { params: { id: string } }) {
             <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 font-mono">
               Itinerary Dependency Graph Analysis (Section 35)
             </h3>
-            <span className="text-xs text-blue-400 font-mono">Trip: Mumbai → London</span>
+            <span className="text-xs text-sky-400 font-mono">Trip: Mumbai → London</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-            {/* Leg 1 */}
-            <div className="p-4 rounded-xl bg-red-950/40 border border-red-800/80 space-y-2">
-              <div className="flex justify-between font-bold text-red-300">
+            {/* Leg 1: Rose (Root Cancellation) */}
+            <div className="p-4 rounded-xl bg-rose-950/40 border border-rose-800/80 space-y-2">
+              <div className="flex justify-between font-bold text-rose-300">
                 <span>Flight 1: AI101</span>
-                <span className="px-2 py-0.5 rounded bg-red-900 text-red-200 text-[10px]">CANCELLED</span>
+                <span className="px-2 py-0.5 rounded bg-rose-900 text-rose-200 text-[10px]">CANCELLED</span>
               </div>
               <p className="text-white font-mono">Mumbai (BOM) → Delhi (DEL)</p>
               <p className="text-slate-400 text-[11px]">Scheduled: 08:30 → 10:45</p>
-              <p className="text-red-400 text-[11px] font-semibold">Origin root failure event.</p>
+              <p className="text-rose-400 text-[11px] font-semibold">Origin root failure event.</p>
             </div>
 
-            {/* Leg 2 */}
+            {/* Leg 2: Amber (Connection Broken) */}
             <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-800/80 space-y-2">
               <div className="flex justify-between font-bold text-amber-300">
                 <span>Flight 2: AI203</span>
@@ -123,15 +123,15 @@ export default function DisruptionPage({ params }: { params: { id: string } }) {
               <p className="text-amber-400 text-[11px] font-semibold">Missed connection due to Leg 1 cancellation.</p>
             </div>
 
-            {/* Hotel */}
-            <div className="p-4 rounded-xl bg-purple-950/40 border border-purple-800/80 space-y-2">
-              <div className="flex justify-between font-bold text-purple-300">
+            {/* Hotel: Indigo (AI Downstream Coordination) */}
+            <div className="p-4 rounded-xl bg-indigo-950/40 border border-indigo-800/80 space-y-2">
+              <div className="flex justify-between font-bold text-indigo-300">
                 <span>Hotel: The Landmark London</span>
-                <span className="px-2 py-0.5 rounded bg-purple-900 text-purple-200 text-[10px]">CHECK-IN IMPACT</span>
+                <span className="px-2 py-0.5 rounded bg-indigo-900 text-indigo-200 text-[10px]">CHECK-IN IMPACT</span>
               </div>
               <p className="text-white font-mono">London, UK (3 Nights)</p>
               <p className="text-slate-400 text-[11px]">Original Check-in: 10 June 2026</p>
-              <p className="text-purple-300 text-[11px] font-semibold">Postponed to 11 June morning upon rebooking.</p>
+              <p className="text-indigo-300 text-[11px] font-semibold">Postponed to 11 June morning upon rebooking.</p>
             </div>
           </div>
         </div>

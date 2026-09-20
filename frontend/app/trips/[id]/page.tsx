@@ -161,11 +161,11 @@ export default function TripDetailsPage({ params }: { params: { id: string } }) 
 
       {/* Disruption Alert if Disrupted */}
       {hasCancelledFlight && (
-        <div className="p-5 rounded-2xl bg-gradient-to-r from-red-950/70 via-slate-900 to-slate-900 border border-red-800/80 shadow-2xl flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+        <div className="p-5 rounded-2xl bg-gradient-to-r from-rose-950/70 via-slate-900 to-slate-900 border border-rose-800/80 shadow-2xl flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-red-400 animate-ping"></span>
-              <span className="text-xs font-mono font-bold text-red-300 uppercase">
+              <span className="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
+              <span className="text-xs font-mono font-bold text-rose-300 uppercase">
                 DISRUPTION ACTIVE ON LEG 1
               </span>
             </div>
