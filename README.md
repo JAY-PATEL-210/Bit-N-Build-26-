@@ -99,5 +99,5 @@ Visit `http://localhost:3000` to access the application.
 ---
 
 <div align="center">
-  <p>Made with ❤️ by team Bit N Built-26</p>
+  <p>Made with ❤️ by team Binary Beasts</p>
 </div>
