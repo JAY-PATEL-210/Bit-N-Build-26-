@@ -9,11 +9,15 @@ from app.utils.casing import to_camel_case
 router = APIRouter()
 
 
+from typing import Optional
+
 @router.get("", response_model=ApiResponse)
-def get_notifications(db: Session = Depends(get_db)):
+def get_notifications(user_id: Optional[str] = None, db: Session = Depends(get_db)):
     """Retrieve all traveler notification alerts (FR-12)"""
     svc = NotificationService(db)
     items = svc.get_all()
+    if user_id:
+        items = [i for i in items if i.user_id == user_id]
     data = [
         to_camel_case({
             "id": n.id, "itinerary_id": n.itinerary_id, "user_id": n.user_id,

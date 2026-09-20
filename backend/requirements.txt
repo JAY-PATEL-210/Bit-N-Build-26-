@@ -15,5 +15,8 @@ httpx>=0.25.0
 # ── Optional: PostgreSQL (uncomment for production) ────────────────────
 # psycopg2-binary>=2.9.9
 
+# ── AI / LLM ───────────────────────────────────────────────────────────
+openai>=1.0.0
+
 # ── Integrations ────────────────────────────────────────────────────────
 duffel-api>=0.6.0

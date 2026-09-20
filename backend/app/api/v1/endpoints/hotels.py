@@ -35,10 +35,16 @@ def modify_hotel(id: str, payload: dict, db: Session = Depends(get_db)):
     svc = HotelService(db)
     check_in = None
     check_out = None
-    if payload.get("check_in"):
-        check_in = datetime.fromisoformat(payload["check_in"])
-    if payload.get("check_out"):
-        check_out = datetime.fromisoformat(payload["check_out"])
+    
+    # Support both snake_case and camelCase payloads
+    check_in_val = payload.get("checkIn") or payload.get("check_in")
+    check_out_val = payload.get("checkOut") or payload.get("check_out")
+    
+    if check_in_val:
+        check_in = datetime.fromisoformat(check_in_val)
+    if check_out_val:
+        check_out = datetime.fromisoformat(check_out_val)
+        
     hotel = svc.modify_hotel(id, check_in=check_in, check_out=check_out)
     if not hotel:
         return ApiResponse(success=False, error=ApiError(code="HOTEL_NOT_FOUND", message=f"Hotel {id} not found"))

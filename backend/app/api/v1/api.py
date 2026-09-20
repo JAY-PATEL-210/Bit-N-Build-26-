@@ -9,6 +9,8 @@ from app.api.v1.endpoints import (
     notifications,
     audit,
     auth,
+    ai_analysis,
+    alternatives,
 )
 
 api_router = APIRouter()
@@ -21,3 +23,5 @@ api_router.include_router(rebooking.router, prefix="/rebooking", tags=["Rebookin
 api_router.include_router(hotels.router, tags=["Hotels"])
 api_router.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
 api_router.include_router(audit.router, tags=["Audit"])
+api_router.include_router(ai_analysis.router, prefix="/ai", tags=["AI Analysis"])
+api_router.include_router(alternatives.router, prefix="/alternatives", tags=["Alternatives"])

@@ -62,6 +62,47 @@ app.add_middleware(
 app.include_router(api_router, prefix="/api")
 
 
+# Exception Handlers
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from starlette.requests import Request
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from app.schemas.common import ApiResponse, ApiError
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error("Unhandled exception: %s", str(exc), exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content=ApiResponse(
+            success=False,
+            error=ApiError(code="INTERNAL_ERROR", message=f"An unexpected error occurred: {str(exc)}")
+        ).model_dump()
+    )
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=ApiResponse(
+            success=False,
+            error=ApiError(code=f"HTTP_{exc.status_code}", message=exc.detail)
+        ).model_dump()
+    )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    errors = exc.errors()
+    msg = "; ".join([f"{'.'.join(str(l) for l in e['loc'])}: {e['msg']}" for e in errors])
+    return JSONResponse(
+        status_code=422,
+        content=ApiResponse(
+            success=False,
+            error=ApiError(code="VALIDATION_ERROR", message=msg)
+        ).model_dump()
+    )
+
+
 @app.get("/")
 def root():
     return {

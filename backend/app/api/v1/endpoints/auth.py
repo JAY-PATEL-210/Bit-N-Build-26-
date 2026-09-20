@@ -58,6 +58,32 @@ def signup(payload: SignupPayload, db: Session = Depends(get_db)):
         )
     )
 
+@router.get("/me", response_model=ApiResponse)
+def get_me(token: str, db: Session = Depends(get_db)):
+    """Get current user profile (using token suffix as ID for mock auth)"""
+    # Mock token format: mock-jwt-{role}-{id}
+    parts = token.split("-")
+    if len(parts) >= 4:
+        user_id = "-".join(parts[3:])
+        user = db.query(User).filter(User.id == user_id).first()
+        if user:
+            return ApiResponse(success=True, data=UserResponse(
+                id=user.id, email=user.email, role=user.role, name=user.name,
+                phone=user.phone, companyName=user.company_name, airlineCode=user.airline_code
+            ))
+    return ApiResponse(success=False, error=ApiError(code="UNAUTHORIZED", message="Invalid token"))
+
+@router.get("/users/{id}", response_model=ApiResponse)
+def get_user(id: str, db: Session = Depends(get_db)):
+    """Get user profile by ID"""
+    user = db.query(User).filter(User.id == id).first()
+    if not user:
+        return ApiResponse(success=False, error=ApiError(code="NOT_FOUND", message="User not found"))
+    return ApiResponse(success=True, data=UserResponse(
+        id=user.id, email=user.email, role=user.role, name=user.name,
+        phone=user.phone, companyName=user.company_name, airlineCode=user.airline_code
+    ))
+
 # Authorized Airline Single-Credential Configuration
 AUTHORIZED_AIRLINE_IDENTIFIERS = {"airline@travelsync.com", "ops@airline.com", "airline"}
 AUTHORIZED_AIRLINE_PASSWORDS = {"airline123", "airline2026", "admin123"}
