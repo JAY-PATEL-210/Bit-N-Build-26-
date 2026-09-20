@@ -12,28 +12,14 @@ interface HotelModificationCardProps {
 
 export const HotelModificationCard: React.FC<HotelModificationCardProps> = ({
   hotel,
-  itineraryId = 'TRIP-001',
+  itineraryId = '',
   isFlightRebooked = true,
 }) => {
-  const [currentHotel, setCurrentHotel] = useState<HotelBooking>(
-    hotel || {
-      id: 'HOTEL-LON-001',
-      itineraryId,
-      hotelName: 'The Landmark London',
-      location: 'Marylebone, London, UK',
-      checkIn: '2026-06-10',
-      checkOut: '2026-06-13',
-      bookingReference: 'HTL-LON-9921',
-      status: isFlightRebooked ? 'MODIFIED_AUTOMATICALLY' : 'PENDING_FLIGHT_CONFIRMATION',
-      originalCheckIn: '2026-06-10',
-      modifiedCheckIn: isFlightRebooked ? '2026-06-11' : undefined,
-      pricePerNight: 7500,
-      currency: 'INR',
-      actionTaken: isFlightRebooked ? 'MODIFY_CHECKIN' : 'NO_ACTION',
-    }
-  );
+  const [currentHotel, setCurrentHotel] = useState<HotelBooking | null>(hotel || null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  if (!currentHotel) return null;
 
   const handleManualSync = async () => {
     setIsUpdating(true);

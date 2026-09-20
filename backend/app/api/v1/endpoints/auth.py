@@ -31,50 +31,9 @@ def _verify_password(password: str, password_hash: str) -> bool:
 
 @router.post("/signup", response_model=ApiResponse)
 def signup(payload: SignupPayload, db: Session = Depends(get_db)):
-    email_lower = payload.email.lower()
-    
-    # Check if user exists
-    existing = db.query(User).filter(User.email == email_lower).first()
-    if existing:
-        return ApiResponse(
-            success=False,
-            error=ApiError(code="USER_EXISTS", message="User with this email already exists")
-        )
-    
-    # Hash password
-    password_hash = _hash_password(payload.password or "password123")
-    
-    # Create new user
-    new_user = User(
-        id=_generate_user_id(),
-        email=email_lower,
-        name=payload.name,
-        phone=payload.phone,
-        password_hash=password_hash,
-        role=payload.role,
-        company_name=payload.companyName,
-        airline_code=payload.airlineCode
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    
-    user_response = UserResponse(
-        id=new_user.id,
-        email=new_user.email,
-        role=new_user.role,
-        name=new_user.name,
-        phone=new_user.phone,
-        companyName=new_user.company_name,
-        airlineCode=new_user.airline_code
-    )
-    
     return ApiResponse(
-        success=True,
-        data=AuthResponse(
-            user=user_response,
-            token=_generate_token(new_user)
-        )
+        success=False,
+        error=ApiError(code="UNAUTHORIZED", message="Public registration is disabled for this demo.")
     )
 
 @router.get("/me", response_model=ApiResponse)
@@ -103,65 +62,25 @@ def get_user(id: str, db: Session = Depends(get_db)):
         phone=user.phone, companyName=user.company_name, airlineCode=user.airline_code
     ))
 
-# Authorized Airline Single-Credential Configuration
-AUTHORIZED_AIRLINE_IDENTIFIERS = {"airline@travelsync.com", "ops@airline.com", "airline"}
-AUTHORIZED_AIRLINE_PASSWORDS = {"airline123", "airline2026", "admin123"}
-
+# Predefined accounts only for the demo
 @router.post("/login", response_model=ApiResponse)
 def login(payload: LoginPayload, db: Session = Depends(get_db)):
     email_lower = payload.email.strip().lower()
     provided_password = (payload.password or "").strip()
-    role_requested = (payload.role or "TRAVELER").strip().upper()
 
-    # If the user specifically selects COMPANY role, or uses an airline identifier:
-    if role_requested == "COMPANY" or email_lower in AUTHORIZED_AIRLINE_IDENTIFIERS:
-        # STRICT CHECK: Only authorized airline ID and password allowed
-        if email_lower not in AUTHORIZED_AIRLINE_IDENTIFIERS or provided_password not in AUTHORIZED_AIRLINE_PASSWORDS:
-            return ApiResponse(
-                success=False,
-                error=ApiError(code="INVALID_CREDENTIALS", message="Access Denied: Invalid Airline Credentials. Only authorized airline partners may log in.")
-            )
+    user = db.query(User).filter(User.email == email_lower).first()
+    
+    if not user:
+        return ApiResponse(
+            success=False,
+            error=ApiError(code="INVALID_CREDENTIALS", message="Invalid email or password.")
+        )
         
-        # Valid airline credentials -> find or create airline user
-        user = db.query(User).filter(User.email == email_lower).first()
-        if not user:
-            user = User(
-                id=_generate_user_id(),
-                email=email_lower,
-                name="Airline Operations Admin",
-                password_hash=_hash_password(provided_password),
-                role="COMPANY",
-                company_name="Air India / TravelSync Partner",
-                airline_code="AI"
-            )
-            db.add(user)
-            db.commit()
-            db.refresh(user)
-    else:
-        # CUSTOMER / TRAVELER login
-        user = db.query(User).filter(User.email == email_lower).first()
-        if user:
-            # Existing user — verify password
-            if user.password_hash and not _verify_password(provided_password, user.password_hash):
-                return ApiResponse(
-                    success=False,
-                    error=ApiError(code="INVALID_CREDENTIALS", message="Invalid email or password.")
-                )
-        else:
-            # Auto-provision new customer account
-            display_name = email_lower.split("@")[0].replace(".", " ").title() if "@" in email_lower else "Traveler"
-            user = User(
-                id=_generate_user_id(),
-                email=email_lower,
-                name=display_name,
-                password_hash=_hash_password(provided_password),
-                role="TRAVELER",
-                company_name=None,
-                airline_code=None
-            )
-            db.add(user)
-            db.commit()
-            db.refresh(user)
+    if user.password_hash and not _verify_password(provided_password, user.password_hash):
+        return ApiResponse(
+            success=False,
+            error=ApiError(code="INVALID_CREDENTIALS", message="Invalid email or password.")
+        )
 
     user_response = UserResponse(
         id=user.id,

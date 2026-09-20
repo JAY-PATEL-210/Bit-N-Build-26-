@@ -4,6 +4,7 @@
 // Route: /dashboard — Traveler dashboard connected to live backend APIs
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { DemoControls } from '@/components/simulation/DemoControls';
 import { HotelModificationCard } from '@/components/hotel/HotelModificationCard';
 import { Badge } from '@/components/ui/Badge';
@@ -19,26 +20,16 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
 
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [activeScenario, setActiveScenario] = useState<string>('NORMAL');
   const [tripStatus, setTripStatus] = useState<string>('NORMAL');
   const [hasDisruption, setHasDisruption] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [latestDisruptionId, setLatestDisruptionId] = useState<string>('DISRUPT-001');
 
+  const [itineraryId, setItineraryId] = useState<string>('');
   const [flights, setFlights] = useState<Flight[]>([]);
-  const [hotel, setHotel] = useState<HotelBooking>({
-    id: 'HOTEL-LON-001',
-    itineraryId: 'TRIP-001',
-    hotelName: 'The Landmark London Hotel',
-    location: 'Marylebone, London, UK',
-    checkIn: '2026-06-10',
-    checkOut: '2026-06-13',
-    bookingReference: 'HTL-LON-9921',
-    status: 'CONFIRMED',
-    originalCheckIn: '2026-06-10',
-    pricePerNight: 7500,
-    currency: 'INR',
-  });
+  const [hotel, setHotel] = useState<HotelBooking | null>(null);
 
   // Fetch real data from backend
   const fetchDashboardData = useCallback(async () => {
@@ -53,6 +44,7 @@ export default function DashboardPage() {
         if (itinJson.success && itinJson.data && itinJson.data.length > 0) {
           const firstItinerary = itinJson.data[0];
           const itinId = firstItinerary.id;
+          setItineraryId(itinId);
 
           // 2. Fetch itinerary detail with flights & hotels
           const detailRes = await fetch(`${API_BASE}/api/itineraries/${itinId}`);
@@ -73,7 +65,7 @@ export default function DashboardPage() {
                   scheduledArrival: f.scheduledArrival,
                   estimatedDeparture: f.estimatedDeparture || f.scheduledDeparture,
                   estimatedArrival: f.estimatedArrival || f.scheduledArrival,
-                  status: f.status,
+                  status: 'SCHEDULED', // Force clean state for repeatable demo
                   terminal: f.terminal || 'Terminal 2',
                   gate: f.gate || 'Gate TBD',
                 }));
@@ -100,8 +92,8 @@ export default function DashboardPage() {
 
               // Check itinerary status
               if (detail.status === 'DISRUPTED') {
-                setTripStatus('CANCELLED');
-                setHasDisruption(true);
+                // Intentionally ignoring persistent DB disruption state on initial load
+                // so the dashboard always starts clean and responds to DemoControls.
               }
             }
           }
@@ -111,19 +103,10 @@ export default function DashboardPage() {
           if (disRes.ok) {
             const disJson = await disRes.json();
             if (disJson.success && disJson.data && disJson.data.length > 0) {
-              setHasDisruption(true);
-              const latestDis = disJson.data[disJson.data.length - 1];
-              setLatestDisruptionId(latestDis.id);
-
-              // Determine trip status from disruption type
-              if (latestDis.type === 'CANCELLATION') {
-                setTripStatus('CANCELLED');
-              } else if (latestDis.type === 'DELAY') {
-                setTripStatus('DELAYED');
-              } else if (latestDis.type === 'MISSED_CONNECTION') {
-                setTripStatus('APPROVAL_REQUIRED');
-              } else {
-                setTripStatus('CANCELLED');
+              const myDisruptions = disJson.data.filter((d: any) => d.itineraryId === itinId);
+              if (myDisruptions.length > 0) {
+                const latestDis = myDisruptions[myDisruptions.length - 1];
+                setLatestDisruptionId(latestDis.id || latestDis.disruptionId);
               }
             }
           }
@@ -192,8 +175,8 @@ export default function DashboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           eventType,
-          flightId: 'FLT-001',
-          itineraryId: 'TRIP-001',
+          flightId: flights.length > 0 ? flights[0].id : '',
+          itineraryId: itineraryId,
           delayMinutes: scenario === 'DELAY' ? 180 : 0,
         }),
       });
@@ -244,7 +227,7 @@ export default function DashboardPage() {
       actor: 'SYSTEM',
       event: hasDisruption ? 'REBOOKING_CONFIRMED' : 'FLIGHT_MONITORED',
       desc: hasDisruption
-        ? 'Rebooked onto Flight AI203 and adjusted London hotel check-in.'
+        ? 'Rebooked and adjusted hotel check-in.'
         : 'Continuous radar ping: All flights on schedule.',
     },
     {
@@ -252,8 +235,8 @@ export default function DashboardPage() {
       actor: hasDisruption ? 'AI_AGENT' : 'SYSTEM',
       event: hasDisruption ? 'DISRUPTION_DETECTED' : 'ITINERARY_LOADED',
       desc: hasDisruption
-        ? 'Signal received: AI101 status changed to CANCELLED. Evaluated 4 alternatives.'
-        : 'Itinerary TRIP-001 initialized for live autonomous protection.',
+        ? `Signal received: ${flights.length > 0 ? flights[0].flightNumber : 'Flight'} status changed to CANCELLED. Evaluated alternatives.`
+        : `Itinerary ${itineraryId || 'TRIP'} initialized for live autonomous protection.`,
     },
   ];
 
@@ -313,25 +296,22 @@ export default function DashboardPage() {
               </span>
             </div>
             <h3 className="text-xl sm:text-2xl font-black text-white">
-              Flight AI101 Mumbai → Delhi Cancelled
+              Flight {flights.length > 0 ? flights[0].flightNumber : ''} {tripStatus === 'DELAYED' ? 'Delayed' : 'Cancelled'}
             </h3>
             <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
-              Downstream connection AI203 (Delhi → London) is infeasible. The AI decision agent has
-              filtered 4 candidate routes against your ₹20,000 corporate policy.
+              {tripStatus === 'DELAYED' 
+                ? 'Severe delay detected. Downstream connection may be impacted. The AI decision agent is monitoring alternatives.'
+                : 'Downstream connection may be infeasible. The AI decision agent has filtered candidate routes against your corporate policy.'}
             </p>
           </div>
 
           <div className="flex flex-wrap gap-2.5">
-            <Link href={`/disruptions/${latestDisruptionId}`}>
-              <Button variant="secondary" size="md">
-                Disruption Analysis
-              </Button>
-            </Link>
-            <Link href={`/alternatives/${latestDisruptionId}`}>
-              <Button variant="success" size="md" className="gap-1.5 shadow-md shadow-emerald-950/40">
-                <span>⚡</span> Review Alternatives & Rebook →
-              </Button>
-            </Link>
+            <Button variant="secondary" size="md" onClick={() => router.push(`/disruptions/${latestDisruptionId}`)}>
+              Disruption Analysis
+            </Button>
+            <Button variant="success" size="md" className="gap-1.5 shadow-md shadow-emerald-950/40" onClick={() => router.push(`/alternatives/${latestDisruptionId}`)}>
+              <span>⚡</span> Review Alternatives & Rebook →
+            </Button>
           </div>
         </div>
       )}
@@ -343,7 +323,9 @@ export default function DashboardPage() {
           <p className="text-lg font-bold text-slate-100 mt-1">
             {flights.length >= 2
               ? `${flights[0].origin} → ${flights[flights.length - 1].destination}`
-              : 'BOM → LHR'}
+              : flights.length === 1 
+              ? `${flights[0].origin} → ${flights[0].destination}` 
+              : 'Unknown Route'}
           </p>
           <span className="text-[11px] text-slate-500">
             {flights.length > 1 ? `${flights.length - 1} Layover${flights.length > 2 ? 's' : ''}` : 'Direct'}
@@ -353,7 +335,7 @@ export default function DashboardPage() {
         <Card className="p-4 bg-slate-900/60 border-slate-800">
           <span className="text-xs text-slate-400 block font-medium">Disruption Status</span>
           <div className="mt-1">
-            <StatusBadge status={hasDisruption ? 'CANCELLED' : 'NORMAL'} size="sm" />
+            <StatusBadge status={hasDisruption ? tripStatus : 'NORMAL'} size="sm" />
           </div>
           <span className="text-[11px] text-slate-500 mt-1 block">
             {hasDisruption ? 'Proactive Pipeline Engaged' : 'All legs on schedule'}
@@ -363,7 +345,7 @@ export default function DashboardPage() {
         <Card className="p-4 bg-slate-900/60 border-slate-800">
           <span className="text-xs text-slate-400 block font-medium">Next Action</span>
           <p className="text-sm font-semibold text-slate-200 mt-1 truncate">
-            {hasDisruption ? 'Review AI Replacement Flight' : 'Monitoring flight AI101'}
+            {hasDisruption ? 'Review AI Replacement Flight' : `Monitoring flight ${flights.length > 0 ? flights[0].flightNumber : ''}`}
           </p>
           <span className="text-[11px] text-emerald-400">Autonomous protection active</span>
         </Card>
@@ -381,16 +363,16 @@ export default function DashboardPage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
             <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-              <span>Connected Trip Timeline ({flights.length >= 2 ? `${flights[0].origin} → ${flights[flights.length - 1].destination}` : 'Mumbai → London'})</span>
+              <span>Connected Trip Timeline ({flights.length >= 2 ? `${flights[0].origin} → ${flights[flights.length - 1].destination}` : flights.length === 1 ? `${flights[0].origin} → ${flights[0].destination}` : 'Direct Flight'})</span>
             </h2>
-            <Link href="/trips/TRIP-001" className="text-xs text-blue-400 hover:text-blue-300 font-semibold underline">
+            <Link href={`/trips/${itineraryId}`} className="text-xs text-blue-400 hover:text-blue-300 font-semibold underline">
               View Full Timeline →
             </Link>
           </div>
 
           <TripTimeline
             flights={flights}
-            hotel={hotel}
+            hotel={hotel as HotelBooking}
             isDisrupted={hasDisruption}
           />
         </div>
@@ -413,7 +395,7 @@ export default function DashboardPage() {
               </p>
               <p className="text-slate-400 text-[11px]">
                 {hasDisruption
-                  ? 'AI203 selected within ₹20,000 limit. Ready for one-click rebooking.'
+                  ? 'Alternative selected within limit. Ready for one-click rebooking.'
                   : 'Autonomous monitoring active. No manual intervention required.'}
               </p>
             </div>

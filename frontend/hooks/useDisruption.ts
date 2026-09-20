@@ -3,14 +3,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { Disruption, AlternativeFlight } from '../types';
 import { disruptionService } from '../services/disruptionService';
 
-export function useDisruption(disruptionId: string = 'DISRUPT-001') {
+export function useDisruption(disruptionId: string) {
   const [disruption, setDisruption] = useState<Disruption | null>(null);
   const [alternatives, setAlternatives] = useState<AlternativeFlight[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchDisruptionData = useCallback(async () => {
-    const id = disruptionId || 'DISRUPT-001';
+    const id = disruptionId;
+    if (!id) return;
     setIsLoading(true);
     setError(null);
     try {
@@ -36,11 +37,12 @@ export function useDisruption(disruptionId: string = 'DISRUPT-001') {
     fetchDisruptionData();
   }, [fetchDisruptionData]);
 
-  const simulateEvent = async (scenario: string) => {
+  const simulateEvent = async (scenario: string, flightId?: string, itineraryId?: string) => {
     setIsLoading(true);
     setError(null);
     try {
-      const id = disruptionId || 'DISRUPT-001';
+      const id = disruptionId;
+      if (!id) return;
       const eventType =
         scenario === 'CANCELLATION'
           ? 'FLIGHT_CANCELLED'
@@ -54,8 +56,8 @@ export function useDisruption(disruptionId: string = 'DISRUPT-001') {
 
       const res = await disruptionService.simulateDisruption({
         eventType,
-        flightId: 'AI101',
-        itineraryId: 'TRIP-001',
+        flightId: flightId || '',
+        itineraryId: itineraryId || '',
       });
 
       if (res.success && res.data) {

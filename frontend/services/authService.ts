@@ -114,54 +114,41 @@ export const authService = {
 
       const emailLower = payload.email.trim().toLowerCase();
       const providedPassword = (payload.password || '').trim();
-      const roleRequested = payload.role || 'TRAVELER';
 
-      // Airline check for offline fallback
-      const isAuthorizedAirline =
-        ['airline@travelsync.com', 'ops@airline.com', 'airline'].includes(emailLower) &&
-        ['airline123', 'airline2026', 'admin123'].includes(providedPassword);
+      const DEMO_USERS = [
+        { email: 'traveler.ahmedabad', pwd: 'Travel@123', name: 'Traveler A', role: 'TRAVELER', id: 'USR-TRV-A' },
+        { email: 'traveler.mumbai', pwd: 'Travel@456', name: 'Traveler B', role: 'TRAVELER', id: 'USR-TRV-B' },
+        { email: 'traveler.delhi', pwd: 'Travel@789', name: 'Traveler C', role: 'TRAVELER', id: 'USR-TRV-C' },
+        { email: 'traveler.bangalore', pwd: 'Travel@321', name: 'Traveler D', role: 'TRAVELER', id: 'USR-TRV-D' },
+        { email: 'agency.alpha', pwd: 'Agency@123', name: 'Agency Alpha', role: 'COMPANY', id: 'USR-AGENCY-A', airlineCode: 'AA', companyName: 'Alpha Travels' },
+        { email: 'agency.beta', pwd: 'Agency@456', name: 'Agency Beta', role: 'COMPANY', id: 'USR-AGENCY-B', airlineCode: 'BB', companyName: 'Beta Travels' },
+      ];
 
-      if (roleRequested === 'COMPANY' || emailLower === 'airline@travelsync.com') {
-        if (!isAuthorizedAirline) {
-          return {
-            success: false,
-            data: null,
-            error: {
-              code: 'INVALID_CREDENTIALS',
-              message: 'Access Denied: Invalid Airline Credentials. Only authorized airline partners may log in.',
-            },
-          };
-        }
-        const companyUser: User = {
-          id: 'USER-AIRLINE-01',
-          email: emailLower,
-          role: 'COMPANY',
-          name: 'Airline Operations Admin',
-          companyName: 'Air India / TravelSync Partner',
-          airlineCode: 'AI',
-        };
-        saveUser(companyUser);
+      const foundUser = DEMO_USERS.find(u => u.email === emailLower && u.pwd === providedPassword);
+
+      if (!foundUser) {
         return {
-          success: true,
-          data: { user: companyUser, token: `mock-jwt-company-${companyUser.id}` },
-          error: null,
+          success: false,
+          data: null,
+          error: {
+            code: 'INVALID_CREDENTIALS',
+            message: 'Access Denied: Invalid Credentials.',
+          },
         };
       }
-
-      // Traveler fallback
-      const displayName = emailLower.includes('@')
-        ? emailLower.split('@')[0].replace('.', ' ').replace(/\b\w/g, (l) => l.toUpperCase())
-        : 'Traveler';
-      const travelerUser: User = {
-        id: `USER-${Date.now().toString().slice(-5)}`,
-        email: payload.email,
-        role: 'TRAVELER',
-        name: displayName,
+      
+      const user: User = {
+        id: foundUser.id,
+        email: foundUser.email,
+        role: foundUser.role as User['role'],
+        name: foundUser.name,
+        companyName: foundUser.companyName,
+        airlineCode: foundUser.airlineCode,
       };
-      saveUser(travelerUser);
+      saveUser(user);
       return {
         success: true,
-        data: { user: travelerUser, token: `mock-jwt-traveler-${travelerUser.id}` },
+        data: { user, token: `mock-jwt-${user.role.toLowerCase()}-${user.id}` },
         error: null,
       };
     }

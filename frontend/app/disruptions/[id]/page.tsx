@@ -12,11 +12,11 @@ export default function DisruptionPage({ params }: { params: { id: string } }) {
   const { disruption, alternatives, isLoading, error, refresh, simulateEvent } = useDisruption(params.id);
 
   const stages = [
-    { label: 'Perception: Detection', status: 'COMPLETED', desc: 'Received cancellation signal for Flight AI101' },
-    { label: 'Reasoning: Impact Analysis', status: 'COMPLETED', desc: 'Leg 2 (AI203 to LHR) & London hotel affected' },
+    { label: 'Perception: Detection', status: 'COMPLETED', desc: 'Received cancellation signal for Flight' },
+    { label: 'Reasoning: Impact Analysis', status: 'COMPLETED', desc: 'Downstream flight & hotel affected' },
     { label: 'Search: Discovery', status: 'COMPLETED', desc: `${alternatives.length || 4} alternative routes discovered` },
     { label: 'Policy: Deterministic Filter', status: 'COMPLETED', desc: '2 alternatives rejected; 2 eligible within ₹20,000 limit' },
-    { label: 'Decision: AI Recommendation', status: 'READY', desc: 'Selected AI203 (Earliest eligible London arrival)' },
+    { label: 'Decision: AI Recommendation', status: 'READY', desc: 'Selected alternative flight' },
     { label: 'Action & Verification', status: 'ACTION_REQUIRED', desc: 'Autonomous rebooking ready for execution' },
   ];
 
@@ -67,11 +67,11 @@ export default function DisruptionPage({ params }: { params: { id: string } }) {
 
           <div className="space-y-2">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
-              {disruption?.description || 'Flight AI101 (Mumbai → Delhi) has been CANCELLED.'}
+              {disruption?.description || 'Flight has been CANCELLED.'}
             </h1>
             <p className="text-sm text-slate-300 max-w-3xl leading-relaxed">
               {disruption?.impact ||
-                'Cascading disruption detected across itinerary TRIP-001. Feeder flight failure breaks downstream connection AI203 to London Heathrow and impacts hotel check-in at The Landmark London.'}
+                'Cascading disruption detected across itinerary. Feeder flight failure breaks downstream connections and impacts hotel check-in.'}
             </p>
           </div>
 
@@ -97,40 +97,40 @@ export default function DisruptionPage({ params }: { params: { id: string } }) {
             <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 font-mono">
               Itinerary Dependency Graph Analysis (Section 35)
             </h3>
-            <span className="text-xs text-sky-400 font-mono">Trip: Mumbai → London</span>
+            <span className="text-xs text-sky-400 font-mono">Trip Affected</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
             {/* Leg 1: Rose (Root Cancellation) */}
             <div className="p-4 rounded-xl bg-rose-950/40 border border-rose-800/80 space-y-2">
               <div className="flex justify-between font-bold text-rose-300">
-                <span>Flight 1: AI101</span>
+                <span>Flight 1</span>
                 <span className="px-2 py-0.5 rounded bg-rose-900 text-rose-200 text-[10px]">CANCELLED</span>
               </div>
-              <p className="text-white font-mono">Mumbai (BOM) → Delhi (DEL)</p>
-              <p className="text-slate-400 text-[11px]">Scheduled: 08:30 → 10:45</p>
+              <p className="text-white font-mono">Origin Route</p>
+              <p className="text-slate-400 text-[11px]">Status: Cancelled</p>
               <p className="text-rose-400 text-[11px] font-semibold">Origin root failure event.</p>
             </div>
 
             {/* Leg 2: Amber (Connection Broken) */}
             <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-800/80 space-y-2">
               <div className="flex justify-between font-bold text-amber-300">
-                <span>Flight 2: AI203</span>
+                <span>Flight 2</span>
                 <span className="px-2 py-0.5 rounded bg-amber-900 text-amber-200 text-[10px]">CONNECTION BROKEN</span>
               </div>
-              <p className="text-white font-mono">Delhi (DEL) → London (LHR)</p>
-              <p className="text-slate-400 text-[11px]">Scheduled: 13:45 → 18:30</p>
+              <p className="text-white font-mono">Connecting Route</p>
+              <p className="text-slate-400 text-[11px]">Status: Broken</p>
               <p className="text-amber-400 text-[11px] font-semibold">Missed connection due to Leg 1 cancellation.</p>
             </div>
 
             {/* Hotel: Indigo (AI Downstream Coordination) */}
             <div className="p-4 rounded-xl bg-indigo-950/40 border border-indigo-800/80 space-y-2">
               <div className="flex justify-between font-bold text-indigo-300">
-                <span>Hotel: The Landmark London</span>
+                <span>Hotel</span>
                 <span className="px-2 py-0.5 rounded bg-indigo-900 text-indigo-200 text-[10px]">CHECK-IN IMPACT</span>
               </div>
-              <p className="text-white font-mono">London, UK (3 Nights)</p>
-              <p className="text-slate-400 text-[11px]">Original Check-in: 10 June 2026</p>
+              <p className="text-white font-mono">Destination Accommodation</p>
+              <p className="text-slate-400 text-[11px]">Check-in Impacted</p>
               <p className="text-indigo-300 text-[11px] font-semibold">Postponed to 11 June morning upon rebooking.</p>
             </div>
           </div>

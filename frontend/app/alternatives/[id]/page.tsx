@@ -96,7 +96,7 @@ export default function AlternativesPage({ params }: { params: { id: string } })
                 Ranked Alternative Flights
               </h1>
               <p className="text-slate-400 text-sm mt-1">
-                Disruption: <span className="text-rose-400 font-semibold">AI101 Mumbai → Delhi Cancelled</span> • Downstream Destination: London (LHR)
+                Disruption: <span className="text-rose-400 font-semibold">{disruption?.description || 'Flight Cancelled'}</span>
               </p>
             </div>
 

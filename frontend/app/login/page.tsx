@@ -637,7 +637,7 @@ function LoginContent() {
                       {role === 'TRAVELER' ? 'Email Address' : 'Airline ID / Email'}
                     </label>
                     <input
-                      type={role === 'TRAVELER' ? 'email' : 'text'}
+                      type="text"
                       required
                       placeholder={role === 'TRAVELER' ? 'traveler@example.com' : 'airline@travelsync.com'}
                       value={email}

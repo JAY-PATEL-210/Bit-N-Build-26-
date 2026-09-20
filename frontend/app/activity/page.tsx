@@ -2,13 +2,24 @@
 
 // Owner: Member B (Frontend Systems / Interaction & Demo)
 // Sections 41, 42 & 52: Audit & Decision Timeline Page
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAudit } from '../../hooks/useAudit';
 import { AuditTimeline } from '../../components/audit/AuditTimeline';
+import { itineraryService } from '../../services/itineraryService';
 
 export default function ActivityPage() {
-  const { logs, loading, refresh } = useAudit('TRIP-001');
+  const [itineraryId, setItineraryId] = useState<string>('');
+  
+  useEffect(() => {
+    itineraryService.getItineraries().then(res => {
+      if (res.success && res.data && res.data.length > 0) {
+        setItineraryId(res.data[0].id);
+      }
+    });
+  }, []);
+
+  const { logs, loading, refresh } = useAudit(itineraryId);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-10">

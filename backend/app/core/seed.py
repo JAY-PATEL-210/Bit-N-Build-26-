@@ -2,13 +2,14 @@
 # ──────────────────────────────────────────────────────────────────────────────
 # Demo Data Seeder  --  Pre-populates the SRS core scenario
 #
-# Route:  Mumbai (BOM) -> Delhi (DEL) -> London (LHR) + London Hotel
-# Event:  AI101 (BOM->DEL) will be CANCELLED during demo
+# 4 Travelers with distinct trips
+# 2 Agencies
 # ──────────────────────────────────────────────────────────────────────────────
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from app.models.itinerary import (
     User, TravelPreferences, Itinerary, TravelSegment, Flight, HotelBooking,
+    Disruption, AlternativeFlight, RebookingRequest, Notification, AgentDecision, AuditLog
 )
 from app.core.logging import logger
 import hashlib
@@ -21,187 +22,141 @@ def _hash_password(password: str) -> str:
 
 
 def seed_demo_data(db: Session):
-    """Idempotent seeder -- skips if TRIP-001 already exists."""
-    existing = db.query(Itinerary).filter(Itinerary.id == "TRIP-002").first()
-    if existing:
-        logger.info("SEED  Demo data already exists -- skipping.")
-        return
+    """Wipes the database and populates fixed demo data."""
+    logger.info("SEED  Wiping existing data for clean demo state...")
+    
+    # Clear all data in correct foreign-key order
+    db.query(RebookingRequest).delete()
+    db.query(AlternativeFlight).delete()
+    db.query(AgentDecision).delete()
+    db.query(Disruption).delete()
+    db.query(Notification).delete()
+    db.query(AuditLog).delete()
+    db.query(HotelBooking).delete()
+    db.query(Flight).delete()
+    db.query(TravelSegment).delete()
+    db.query(Itinerary).delete()
+    db.query(TravelPreferences).delete()
+    db.query(User).delete()
+    db.commit()
 
-    logger.info("SEED  Populating demo scenario ...")
+    logger.info("SEED  Populating fixed demo scenario...")
 
-    # ── 1. User ─────────────────────────────────────────────────────────
-    user = User(
-        id="USR-001",
-        name="Arjun Mehta",
-        email="arjun.mehta@example.com",
-        phone="+91-98765-43210",
-        password_hash=_hash_password("arjun123"),
-    )
-    db.add(user)
+    # Define base dates relative to today to keep the demo always "current"
+    now = datetime.now()
+    demo_start = now.replace(hour=10, minute=0, second=0, microsecond=0) + timedelta(days=2)
 
-    prefs = TravelPreferences(
-        id="PREF-001",
-        user_id="USR-001",
-        autonomous_rebooking=True,
-        autonomous_hotel_modification=True,
-        preferred_cabin="ECONOMY",
-        max_additional_fare=20000.0,
-        currency="INR",
-        min_connection_minutes=90,
-    )
-    db.add(prefs)
+    # ── 1. Agencies ─────────────────────────────────────────────────────────
+    agencies = [
+        User(id="USR-AGENCY-A", email="agency.alpha", name="Agency Alpha", password_hash=_hash_password("Agency@123"), role="COMPANY", company_name="Alpha Travels", airline_code="AA"),
+        User(id="USR-AGENCY-B", email="agency.beta", name="Agency Beta", password_hash=_hash_password("Agency@456"), role="COMPANY", company_name="Beta Travels", airline_code="BB"),
+    ]
+    for a in agencies:
+        db.add(a)
 
-    # ── 2. Itinerary ────────────────────────────────────────────────────
-    itinerary = Itinerary(
-        id="TRIP-001",
-        user_id="USR-001",
-        trip_name="Mumbai - London Business Trip",
-        start_date=datetime(2025, 6, 10, 10, 0),
-        end_date=datetime(2025, 6, 13, 12, 0),
-        status="ACTIVE",
-    )
-    db.add(itinerary)
+    # ── 2. Travelers ────────────────────────────────────────────────────────
+    travelers_info = [
+        {
+            "id": "USR-TRV-A", "email": "traveler.ahmedabad", "name": "Traveler A", "pwd": "Travel@123",
+            "trip_id": "TRIP-A", "trip_name": "Ahmedabad to Delhi Business Trip",
+            "origin": "AMD", "dest": "DEL", "flight_num": "AI101",
+            "hotel": "Hilton Delhi", "hotel_loc": "New Delhi, India"
+        },
+        {
+            "id": "USR-TRV-B", "email": "traveler.mumbai", "name": "Traveler B", "pwd": "Travel@456",
+            "trip_id": "TRIP-B", "trip_name": "Mumbai to Bengaluru Conf",
+            "origin": "BOM", "dest": "BLR", "flight_num": "6E202",
+            "hotel": "Taj West End", "hotel_loc": "Bengaluru, India"
+        },
+        {
+            "id": "USR-TRV-C", "email": "traveler.delhi", "name": "Traveler C", "pwd": "Travel@789",
+            "trip_id": "TRIP-C", "trip_name": "Delhi to London Summit",
+            "origin": "DEL", "dest": "LHR", "flight_num": "BA303",
+            "hotel": "The Ritz London", "hotel_loc": "London, UK"
+        },
+        {
+            "id": "USR-TRV-D", "email": "traveler.bangalore", "name": "Traveler D", "pwd": "Travel@321",
+            "trip_id": "TRIP-D", "trip_name": "Bengaluru to Mumbai Client Meet",
+            "origin": "BLR", "dest": "BOM", "flight_num": "QP404",
+            "hotel": "Oberoi Mumbai", "hotel_loc": "Mumbai, India"
+        }
+    ]
 
-    # ── 3. Segment 1: BOM -> DEL ────────────────────────────────────────
-    seg1 = TravelSegment(
-        id="SEG-001",
-        itinerary_id="TRIP-001",
-        segment_type="FLIGHT",
-        sequence_order=1,
-        booking_reference="PNR-ABC123",
-    )
-    db.add(seg1)
+    for t in travelers_info:
+        # User
+        user = User(
+            id=t["id"],
+            name=t["name"],
+            email=t["email"],
+            password_hash=_hash_password(t["pwd"]),
+            role="TRAVELER",
+        )
+        db.add(user)
 
-    flight1 = Flight(
-        id="FLT-001",
-        segment_id="SEG-001",
-        airline="Air India",
-        flight_number="AI101",
-        origin="BOM",
-        destination="DEL",
-        scheduled_departure=datetime(2025, 6, 10, 10, 0),
-        scheduled_arrival=datetime(2025, 6, 10, 12, 30),
-        status="SCHEDULED",
-        terminal="T2",
-        gate="G14",
-    )
-    db.add(flight1)
+        # Preferences
+        prefs = TravelPreferences(
+            id=f"PREF-{t['id']}",
+            user_id=t["id"],
+            autonomous_rebooking=True,
+            autonomous_hotel_modification=True,
+            preferred_cabin="ECONOMY",
+            max_additional_fare=20000.0,
+            currency="INR",
+            min_connection_minutes=90,
+        )
+        db.add(prefs)
 
-    # ── 4. Segment 2: DEL -> LHR ────────────────────────────────────────
-    seg2 = TravelSegment(
-        id="SEG-002",
-        itinerary_id="TRIP-001",
-        segment_type="FLIGHT",
-        sequence_order=2,
-        booking_reference="PNR-ABC123",
-    )
-    db.add(seg2)
+        # Itinerary
+        itin = Itinerary(
+            id=t["trip_id"],
+            user_id=t["id"],
+            trip_name=t["trip_name"],
+            start_date=demo_start,
+            end_date=demo_start + timedelta(days=3),
+            status="ACTIVE",
+        )
+        db.add(itin)
 
-    flight2 = Flight(
-        id="FLT-002",
-        segment_id="SEG-002",
-        airline="Air India",
-        flight_number="AI203",
-        origin="DEL",
-        destination="LHR",
-        scheduled_departure=datetime(2025, 6, 10, 15, 0),
-        scheduled_arrival=datetime(2025, 6, 10, 20, 30),
-        status="SCHEDULED",
-        terminal="T3",
-        gate="G22",
-    )
-    db.add(flight2)
+        # Segment
+        seg = TravelSegment(
+            id=f"SEG-{t['trip_id']}-1",
+            itinerary_id=t["trip_id"],
+            segment_type="FLIGHT",
+            sequence_order=1,
+            booking_reference=f"PNR-{t['trip_id']}X",
+        )
+        db.add(seg)
 
-    # ── 5. Hotel: London ────────────────────────────────────────────────
-    hotel = HotelBooking(
-        id="HTL-001",
-        itinerary_id="TRIP-001",
-        hotel_name="Hilton London Heathrow",
-        location="London, United Kingdom",
-        check_in=datetime(2025, 6, 10, 14, 0),
-        check_out=datetime(2025, 6, 13, 12, 0),
-        booking_reference="HLTN-789456",
-        price=45000.0,
-        currency="INR",
-        status="CONFIRMED",
-    )
-    db.add(hotel)
+        # Flight
+        flight = Flight(
+            id=f"FLT-{t['trip_id']}-1",
+            segment_id=seg.id,
+            airline="Demo Airlines",
+            flight_number=t["flight_num"],
+            origin=t["origin"],
+            destination=t["dest"],
+            scheduled_departure=demo_start,
+            scheduled_arrival=demo_start + timedelta(hours=2, minutes=30),
+            status="SCHEDULED",
+            terminal="T1",
+            gate="G10",
+        )
+        db.add(flight)
 
-    # ── 6. User 2 (Sarah Jenkins) ───────────────────────────────────────
-    user2 = User(
-        id="USR-002",
-        name="Sarah Jenkins",
-        email="sarah.j@example.com",
-        phone="+1-555-0198",
-        password_hash=_hash_password("sarah123"),
-    )
-    db.add(user2)
-
-    prefs2 = TravelPreferences(
-        id="PREF-002",
-        user_id="USR-002",
-        autonomous_rebooking=True,
-        autonomous_hotel_modification=True,
-        preferred_cabin="BUSINESS",
-        max_additional_fare=500.0,
-        currency="USD",
-        min_connection_minutes=90,
-    )
-    db.add(prefs2)
-
-    itinerary2 = Itinerary(
-        id="TRIP-002",
-        user_id="USR-002",
-        trip_name="NYC - London Client Meeting",
-        start_date=datetime(2025, 7, 15, 18, 0),
-        end_date=datetime(2025, 7, 18, 12, 0),
-        status="ACTIVE",
-    )
-    db.add(itinerary2)
-
-    seg3 = TravelSegment(
-        id="SEG-003",
-        itinerary_id="TRIP-002",
-        segment_type="FLIGHT",
-        sequence_order=1,
-        booking_reference="PNR-XYZ789",
-    )
-    db.add(seg3)
-
-    flight3 = Flight(
-        id="FLT-003",
-        segment_id="SEG-003",
-        airline="British Airways",
-        flight_number="BA112",
-        origin="JFK",
-        destination="LHR",
-        scheduled_departure=datetime(2025, 7, 15, 18, 30),
-        scheduled_arrival=datetime(2025, 7, 16, 6, 30),
-        status="SCHEDULED",
-        terminal="T7",
-        gate="G5",
-    )
-    db.add(flight3)
-
-    hotel2 = HotelBooking(
-        id="HTL-002",
-        itinerary_id="TRIP-002",
-        hotel_name="The Ritz London",
-        location="London, United Kingdom",
-        check_in=datetime(2025, 7, 16, 14, 0),
-        check_out=datetime(2025, 7, 18, 11, 0),
-        booking_reference="RITZ-123456",
-        price=1200.0,
-        currency="USD",
-        status="CONFIRMED",
-    )
-    db.add(hotel2)
+        # Hotel
+        hotel = HotelBooking(
+            id=f"HTL-{t['trip_id']}",
+            itinerary_id=t["trip_id"],
+            hotel_name=t["hotel"],
+            location=t["hotel_loc"],
+            check_in=demo_start + timedelta(hours=4),
+            check_out=demo_start + timedelta(days=3),
+            booking_reference=f"HTL-{t['trip_id']}X",
+            price=15000.0,
+            currency="INR",
+            status="CONFIRMED",
+        )
+        db.add(hotel)
 
     db.commit()
-    logger.info("SEED  Demo scenario ready - TRIP-001 (BOM -> DEL -> LHR + Hilton London)")
-    logger.info("SEED    User: Arjun Mehta (USR-001)")
-    logger.info("SEED    Flight AI101: BOM->DEL  10:00-12:30")
-    logger.info("SEED    Flight AI203: DEL->LHR  15:00-20:30")
-    logger.info("SEED    Hotel: Hilton London, Check-in June 10")
-    logger.info("SEED  Demo scenario ready - TRIP-002 (JFK -> LHR + The Ritz London)")
-    logger.info("SEED    User: Sarah Jenkins (USR-002)")
+    logger.info("SEED  Demo scenarios ready. 4 Travelers and 2 Agencies provisioned.")

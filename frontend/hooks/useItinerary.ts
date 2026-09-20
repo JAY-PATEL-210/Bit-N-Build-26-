@@ -3,13 +3,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { itineraryService } from '../services/itineraryService';
 import { Itinerary } from '../types';
 
-export function useItinerary(itineraryId: string = 'TRIP-001') {
+export function useItinerary(itineraryId: string) {
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchItinerary = useCallback(async () => {
-    const id = itineraryId || 'TRIP-001';
+    const id = itineraryId;
+    if (!id) return;
     setLoading(true);
     setError(null);
     try {

@@ -45,21 +45,21 @@ export default function TripDetailsPage({ params }: { params: { id: string } }) 
 
   const fallbackHotel: HotelBooking = {
     id: 'HTL-001',
-    itineraryId: params.id || 'TRIP-001',
-    hotelName: 'The Landmark London Hotel',
-    location: 'Marylebone, London, UK',
+    itineraryId: params.id,
+    hotelName: 'Generic Hotel',
+    location: 'City Center',
     checkIn: isCancelled ? '11 June 2026' : '10 June 2026',
     checkOut: '13 June 2026',
-    bookingReference: 'HTL-LHR-8891',
+    bookingReference: 'HTL-REF-001',
     status: 'CONFIRMED',
     pricePerNight: 7500,
     currency: 'INR',
   };
 
   const trip = itinerary || {
-    id: params.id || 'TRIP-001',
+    id: params.id,
     userId: 'USER-DEMO-01',
-    tripName: 'Business Travel: Mumbai to London',
+    tripName: 'Business Travel',
     startDate: '2026-06-10',
     endDate: '2026-06-13',
     status: 'ACTIVE',
@@ -83,7 +83,7 @@ export default function TripDetailsPage({ params }: { params: { id: string } }) 
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
-                Trip: Mumbai → London
+                Trip: {trip.flights && trip.flights.length > 0 ? `${trip.flights[0].origin} → ${trip.flights[trip.flights.length - 1].destination}` : 'Overview'}
               </h1>
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 font-mono">
                 {trip.id}
@@ -120,14 +120,18 @@ export default function TripDetailsPage({ params }: { params: { id: string } }) 
             Travel Route
           </span>
           <div className="flex items-center gap-2 mt-2">
-            <span className="text-xl font-bold text-white">Mumbai</span>
+            <span className="text-xl font-bold text-white">{trip.flights && trip.flights.length > 0 ? trip.flights[0].origin : 'Origin'}</span>
             <span className="text-slate-500">→</span>
-            <span className="text-xl font-bold text-white">Delhi</span>
-            <span className="text-slate-500">→</span>
-            <span className="text-xl font-bold text-white">London</span>
+            {trip.flights && trip.flights.length > 1 && (
+              <>
+                <span className="text-xl font-bold text-white">{trip.flights[0].destination}</span>
+                <span className="text-slate-500">→</span>
+              </>
+            )}
+            <span className="text-xl font-bold text-white">{trip.flights && trip.flights.length > 0 ? trip.flights[trip.flights.length - 1].destination : 'Destination'}</span>
           </div>
           <p className="text-xs text-slate-400 mt-2">
-            Total Distance: 4,480 mi • 2 Segments • 1 Hotel
+            {trip.flights ? trip.flights.length : 0} Segments • {trip.hotel ? '1 Hotel' : 'No Hotel'}
           </p>
         </Card>
 
@@ -140,7 +144,7 @@ export default function TripDetailsPage({ params }: { params: { id: string } }) 
             <span className="text-base font-bold text-slate-100">{trip.startDate} - {trip.endDate}</span>
           </div>
           <p className="text-xs text-slate-400 mt-2">
-            3 Nights London accommodation synchronized
+            Accommodation synchronized
           </p>
         </Card>
 
