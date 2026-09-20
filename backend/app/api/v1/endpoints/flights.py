@@ -89,8 +89,8 @@ def create_flight(payload: dict, db: Session = Depends(get_db)):
         flight_number=payload.get("flightNumber", payload.get("flight_number", "")),
         origin=payload.get("origin", ""),
         destination=payload.get("destination", ""),
-        scheduled_departure=datetime.fromisoformat(payload["scheduledDeparture"]) if payload.get("scheduledDeparture") else (datetime.fromisoformat(payload["scheduled_departure"]) if payload.get("scheduled_departure") else datetime.now()),
-        scheduled_arrival=datetime.fromisoformat(payload["scheduledArrival"]) if payload.get("scheduledArrival") else (datetime.fromisoformat(payload["scheduled_arrival"]) if payload.get("scheduled_arrival") else datetime.now()),
+        scheduled_departure=datetime.fromisoformat(payload["scheduledDeparture"].replace('Z', '+00:00')) if payload.get("scheduledDeparture") else (datetime.fromisoformat(payload["scheduled_departure"].replace('Z', '+00:00')) if payload.get("scheduled_departure") else datetime.now()),
+        scheduled_arrival=datetime.fromisoformat(payload["scheduledArrival"].replace('Z', '+00:00')) if payload.get("scheduledArrival") else (datetime.fromisoformat(payload["scheduled_arrival"].replace('Z', '+00:00')) if payload.get("scheduled_arrival") else datetime.now()),
         status="SCHEDULED",
         terminal=payload.get("terminal"),
         gate=payload.get("gate"),
@@ -145,9 +145,9 @@ def delay_flight(id: str, payload: dict, db: Session = Depends(get_db)):
     new_arr = payload.get("newArrivalTime") or payload.get("new_arrival_time")
 
     if new_dep:
-        flight.estimated_departure = datetime.fromisoformat(new_dep)
+        flight.estimated_departure = datetime.fromisoformat(new_dep.replace('Z', '+00:00'))
     if new_arr:
-        flight.estimated_arrival = datetime.fromisoformat(new_arr)
+        flight.estimated_arrival = datetime.fromisoformat(new_arr.replace('Z', '+00:00'))
     flight.status = "DELAYED"
     db.commit()
     db.refresh(flight)

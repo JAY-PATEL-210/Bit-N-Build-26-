@@ -35,14 +35,13 @@ export const TripTimeline: React.FC<TripTimelineProps> = ({ flights, hotel, isDi
                 {idx + 1}
               </div>
 
-              {/* Flight Card */}
               <div
-                className={`p-5 rounded-2xl border transition-all duration-300 illusion-card ${
+                className={`p-5 rounded-2xl border transition-all duration-300 illusion-card backdrop-blur-md ${
                   isCancelled
-                    ? 'bg-rose-950/25 border-rose-800/80 shadow-lg shadow-rose-950/30'
+                    ? 'bg-rose-950/40 border-rose-800/80 shadow-lg shadow-rose-950/30'
                     : isDelayed
-                    ? 'bg-amber-950/20 border-amber-800/70 shadow-lg shadow-amber-950/20'
-                    : 'bg-slate-900/90 border-slate-800/90 hover:border-sky-500/40'
+                    ? 'bg-amber-950/40 border-amber-800/70 shadow-lg shadow-amber-950/20'
+                    : 'bg-slate-900/80 border-slate-800/90 hover:border-sky-500/40'
                 }`}
               >
                 <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-2 border-b border-slate-800/80 pb-3">
@@ -114,7 +113,7 @@ export const TripTimeline: React.FC<TripTimelineProps> = ({ flights, hotel, isDi
               🏨
             </div>
 
-            <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-indigo-800/50 transition space-y-3">
+            <div className="p-5 rounded-2xl bg-slate-900/80 backdrop-blur-md border border-slate-800 hover:border-indigo-800/50 transition space-y-3">
               <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-2 border-b border-slate-800/80 pb-3">
                 <div>
                   <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-400 font-bold block">
