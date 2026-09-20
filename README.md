@@ -33,15 +33,20 @@ When a flight is delayed or cancelled, travelers are plunged into a chaotic nigh
 
 ## 📸 See It In Action
 
-### The Traveler Timeline
-A beautiful, node-based visual graph that tracks the user's journey. When disruptions occur, the UI instantly highlights the impacted segments and provides the downstream rebooking status.
+### 1. Connected Trip Timeline & Simulation Engine
+A beautiful, node-based visual graph that tracks the traveler's journey. We built a dedicated Simulation Engine (Judge Presentation Controls) to simulate real-world delays, cancellations, and missed connections in real-time.
 
-![Traveler Timeline](docs/screenshots/traveler_timeline.png)
+![Simulation Engine & Timeline](docs/screenshots/dashboard.jpg)
 
-### Airline Operations Dashboard
-A powerful operations console where airline staff can broadcast delays or cancellations. Our backend processes these events and instantly pushes autonomous recovery actions to the affected travelers.
+### 2. AI Decision Engine (Ranked Alternatives)
+When a disruption occurs, the autonomous concierge evaluates thousands of routing permutations. It ranks them based on corporate travel policies, connection buffers, and AI confidence scoring.
 
-![Company Dashboard](docs/screenshots/company_dashboard.png)
+![AI Decision Engine](docs/screenshots/ai_engine.jpg)
+
+### 3. Autonomous End-to-End Rebooking
+The system executes autonomous rebooking sequentially: verifying seat availability, generating idempotency keys, calling airline APIs, and even synchronizing downstream hotel check-in dates—all with zero human intervention.
+
+![Autonomous Rebooking](docs/screenshots/autonomous_rebooking.jpg)
 
 ---
 
