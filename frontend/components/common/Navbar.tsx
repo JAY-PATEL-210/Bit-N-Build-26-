@@ -67,9 +67,6 @@ export const Navbar: React.FC = () => {
                 <span className="font-extrabold text-sm tracking-tight text-white group-hover:text-sky-300 transition">
                   RoutePilot
                 </span>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-sky-950/80 border border-sky-800/70 text-sky-400 font-semibold">
-                  PS-8
-                </span>
               </div>
               <span className="text-[10px] text-slate-400 block -mt-0.5 font-medium">
                 Autonomous Disruption Concierge

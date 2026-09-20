@@ -13,6 +13,7 @@ import { Card } from '@/components/ui/Card';
 import { TripTimeline } from '@/components/trips/TripTimeline';
 import { Flight, HotelBooking, Disruption } from '@/types/index';
 import { RefreshCw } from 'lucide-react';
+import { authService } from '@/services/authService';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 
@@ -42,9 +43,11 @@ export default function DashboardPage() {
   // Fetch real data from backend
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
+    const user = authService.getCurrentUser();
+    const url = user ? `${API_BASE}/api/itineraries?user_id=${user.id}` : `${API_BASE}/api/itineraries`;
     try {
       // 1. Fetch itineraries
-      const itinRes = await fetch(`${API_BASE}/api/itineraries`);
+      const itinRes = await fetch(url);
       if (itinRes.ok) {
         const itinJson = await itinRes.json();
         if (itinJson.success && itinJson.data && itinJson.data.length > 0) {

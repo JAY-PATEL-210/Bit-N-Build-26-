@@ -1,4 +1,5 @@
 # Owner: Member C (Backend Lead / Core Services)
+from typing import Optional
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.core.database import get_db
@@ -11,10 +12,10 @@ router = APIRouter()
 
 
 @router.get("", response_model=ApiResponse)
-def get_itineraries(db: Session = Depends(get_db)):
+def get_itineraries(user_id: Optional[str] = None, db: Session = Depends(get_db)):
     """Retrieve all active itineraries (FR-02)"""
     svc = ItineraryService(db)
-    items = svc.get_all()
+    items = svc.get_by_user(user_id) if user_id else svc.get_all()
     data = [
         to_camel_case({
             "id": i.id, "user_id": i.user_id, "trip_name": i.trip_name,

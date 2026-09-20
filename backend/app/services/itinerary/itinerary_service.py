@@ -19,6 +19,9 @@ class ItineraryService:
     def get_all(self) -> List[Itinerary]:
         return self.repo.get_all()
 
+    def get_by_user(self, user_id: str) -> List[Itinerary]:
+        return self.repo.get_by_user(user_id)
+
     def get_by_id(self, itinerary_id: str) -> Optional[Itinerary]:
         return self.repo.get_by_id(itinerary_id)
 
