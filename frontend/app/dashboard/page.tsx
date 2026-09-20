@@ -147,7 +147,8 @@ export default function DashboardPage() {
 
       {/* Disruption Alert Banner (Section 12: Disruption Status) */}
       {hasDisruption && (
-        <div className="p-6 rounded-2xl bg-gradient-to-r from-red-950/70 via-slate-900 to-slate-900 border border-red-800/80 shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-in fade-in duration-200">
+        <div className="p-6 rounded-2xl bg-gradient-to-r from-red-950/80 via-slate-900/90 to-slate-900/90 border border-red-700/80 shadow-[0_0_35px_-5px_rgba(239,68,68,0.3)] backdrop-blur-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-in fade-in duration-300 relative overflow-hidden group">
+          <div className="absolute inset-0 illusion-shimmer opacity-30 pointer-events-none" />
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full bg-red-400 animate-ping"></span>

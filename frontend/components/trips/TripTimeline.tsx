@@ -37,10 +37,12 @@ export const TripTimeline: React.FC<TripTimelineProps> = ({ flights, hotel, isDi
 
               {/* Flight Card */}
               <div
-                className={`p-5 rounded-2xl border transition-all ${
+                className={`p-5 rounded-2xl border transition-all duration-300 illusion-card ${
                   isCancelled
-                    ? 'bg-red-950/20 border-red-800/80 shadow-lg shadow-red-950/20'
-                    : 'bg-slate-900 border-slate-800 hover:border-slate-700'
+                    ? 'bg-red-950/25 border-red-800/80 shadow-lg shadow-red-950/30'
+                    : isDelayed
+                    ? 'bg-amber-950/20 border-amber-800/70 shadow-lg shadow-amber-950/20'
+                    : 'bg-slate-900/90 border-slate-800/90 hover:border-sky-500/40'
                 }`}
               >
                 <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-2 border-b border-slate-800/80 pb-3">
