@@ -15,7 +15,7 @@ from app.integrations.flight.duffel import DuffelFlightProvider
 from app.integrations.booking.mock import MockBookingProvider
 from app.integrations.booking.duffel import DuffelBookingProvider
 from app.integrations.hotel.mock import MockHotelProvider
-from app.integrations.hotel.amadeus import AmadeusHotelProvider
+from app.integrations.hotel.serpapi import SerpApiHotelProvider
 from app.integrations.notification.mock import MockNotificationProvider
 from app.utils.idempotency import generate_idempotency_key
 from app.core.config import settings
@@ -105,7 +105,7 @@ class TravelAgentOrchestrator:
 
         self.flight_provider = flight_provider or (DuffelFlightProvider() if settings.FLIGHT_API_KEY else MockFlightProvider())
         self.booking_provider = booking_provider or (DuffelBookingProvider() if settings.BOOKING_API_KEY else MockBookingProvider())
-        self.hotel_provider = hotel_provider or (AmadeusHotelProvider() if settings.HOTEL_API_KEY else MockHotelProvider())
+        self.hotel_provider = hotel_provider or (SerpApiHotelProvider() if settings.HOTEL_API_KEY else MockHotelProvider())
         self.notification_provider = notification_provider or MockNotificationProvider()
 
     async def run_disruption_pipeline(
