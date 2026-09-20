@@ -1,4 +1,5 @@
 import time
+import hashlib
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
@@ -8,11 +9,25 @@ from app.schemas.common import ApiResponse, ApiError
 
 router = APIRouter()
 
+
 def _generate_user_id() -> str:
     return f"USER-{int(time.time() * 1000) % 100000:05d}"
 
+
 def _generate_token(user: User) -> str:
     return f"mock-jwt-{user.role.lower()}-{user.id}"
+
+
+def _hash_password(password: str) -> str:
+    """Hash password using SHA-256 with a static salt for demo simplicity."""
+    salted = f"routepilot_salt_{password}"
+    return hashlib.sha256(salted.encode()).hexdigest()
+
+
+def _verify_password(password: str, password_hash: str) -> bool:
+    """Verify a password against its hash."""
+    return _hash_password(password) == password_hash
+
 
 @router.post("/signup", response_model=ApiResponse)
 def signup(payload: SignupPayload, db: Session = Depends(get_db)):
@@ -26,12 +41,16 @@ def signup(payload: SignupPayload, db: Session = Depends(get_db)):
             error=ApiError(code="USER_EXISTS", message="User with this email already exists")
         )
     
+    # Hash password
+    password_hash = _hash_password(payload.password or "password123")
+    
     # Create new user
     new_user = User(
         id=_generate_user_id(),
         email=email_lower,
         name=payload.name,
         phone=payload.phone,
+        password_hash=password_hash,
         role=payload.role,
         company_name=payload.companyName,
         airline_code=payload.airlineCode
@@ -96,7 +115,7 @@ def login(payload: LoginPayload, db: Session = Depends(get_db)):
 
     # If the user specifically selects COMPANY role, or uses an airline identifier:
     if role_requested == "COMPANY" or email_lower in AUTHORIZED_AIRLINE_IDENTIFIERS:
-        # STRICT CHECK: Only ONE particular airline ID and password allowed
+        # STRICT CHECK: Only authorized airline ID and password allowed
         if email_lower not in AUTHORIZED_AIRLINE_IDENTIFIERS or provided_password not in AUTHORIZED_AIRLINE_PASSWORDS:
             return ApiResponse(
                 success=False,
@@ -110,6 +129,7 @@ def login(payload: LoginPayload, db: Session = Depends(get_db)):
                 id=_generate_user_id(),
                 email=email_lower,
                 name="Airline Operations Admin",
+                password_hash=_hash_password(provided_password),
                 role="COMPANY",
                 company_name="Air India / TravelSync Partner",
                 airline_code="AI"
@@ -118,15 +138,23 @@ def login(payload: LoginPayload, db: Session = Depends(get_db)):
             db.commit()
             db.refresh(user)
     else:
-        # CUSTOMER / TRAVELER: All emails and passwords are valid!
+        # CUSTOMER / TRAVELER login
         user = db.query(User).filter(User.email == email_lower).first()
-        if not user:
-            # Auto-provision customer account in database
+        if user:
+            # Existing user — verify password
+            if user.password_hash and not _verify_password(provided_password, user.password_hash):
+                return ApiResponse(
+                    success=False,
+                    error=ApiError(code="INVALID_CREDENTIALS", message="Invalid email or password.")
+                )
+        else:
+            # Auto-provision new customer account
             display_name = email_lower.split("@")[0].replace(".", " ").title() if "@" in email_lower else "Traveler"
             user = User(
                 id=_generate_user_id(),
                 email=email_lower,
                 name=display_name,
+                password_hash=_hash_password(provided_password),
                 role="TRAVELER",
                 company_name=None,
                 airline_code=None

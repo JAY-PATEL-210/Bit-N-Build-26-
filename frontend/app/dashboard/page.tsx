@@ -1,7 +1,8 @@
 'use client';
 
 // Owner: Member A (Frontend Lead) & Member B (Systems & Demo)
-import React, { useState } from 'react';
+// Route: /dashboard — Traveler dashboard connected to live backend APIs
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { DemoControls } from '@/components/simulation/DemoControls';
 import { HotelModificationCard } from '@/components/hotel/HotelModificationCard';
@@ -10,46 +11,21 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/Card';
 import { TripTimeline } from '@/components/trips/TripTimeline';
-import { Flight, HotelBooking } from '@/types/index';
+import { Flight, HotelBooking, Disruption } from '@/types/index';
+import { RefreshCw } from 'lucide-react';
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 
 
 export default function DashboardPage() {
   const [activeScenario, setActiveScenario] = useState<string>('NORMAL');
   const [tripStatus, setTripStatus] = useState<string>('NORMAL');
   const [hasDisruption, setHasDisruption] = useState<boolean>(false);
+  const [loading, setLoading] = useState(true);
+  const [latestDisruptionId, setLatestDisruptionId] = useState<string>('DISRUPT-001');
 
-  const [flights, setFlights] = useState<Flight[]>([
-    {
-      id: 'FLIGHT-101',
-      airline: 'Air India',
-      flightNumber: 'AI101',
-      origin: 'BOM',
-      destination: 'DEL',
-      scheduledDeparture: '2026-06-10T08:30:00Z',
-      scheduledArrival: '2026-06-10T10:45:00Z',
-      estimatedDeparture: '2026-06-10T08:30:00Z',
-      estimatedArrival: '2026-06-10T10:45:00Z',
-      status: 'SCHEDULED',
-      terminal: 'Terminal 2',
-      gate: 'Gate 42B',
-    },
-    {
-      id: 'FLIGHT-203',
-      airline: 'Air India',
-      flightNumber: 'AI203',
-      origin: 'DEL',
-      destination: 'LHR',
-      scheduledDeparture: '2026-06-10T13:45:00Z',
-      scheduledArrival: '2026-06-10T18:30:00Z',
-      estimatedDeparture: '2026-06-10T13:45:00Z',
-      estimatedArrival: '2026-06-10T18:30:00Z',
-      status: 'SCHEDULED',
-      terminal: 'Terminal 3',
-      gate: 'Gate 18',
-    },
-  ]);
-
-  const hotel: HotelBooking = {
+  const [flights, setFlights] = useState<Flight[]>([]);
+  const [hotel, setHotel] = useState<HotelBooking>({
     id: 'HOTEL-LON-001',
     itineraryId: 'TRIP-001',
     hotelName: 'The Landmark London Hotel',
@@ -61,43 +37,201 @@ export default function DashboardPage() {
     originalCheckIn: '2026-06-10',
     pricePerNight: 7500,
     currency: 'INR',
-  };
+  });
 
-  const handleSimulate = (scenario: string) => {
+  // Fetch real data from backend
+  const fetchDashboardData = useCallback(async () => {
+    setLoading(true);
+    try {
+      // 1. Fetch itineraries
+      const itinRes = await fetch(`${API_BASE}/api/itineraries`);
+      if (itinRes.ok) {
+        const itinJson = await itinRes.json();
+        if (itinJson.success && itinJson.data && itinJson.data.length > 0) {
+          const firstItinerary = itinJson.data[0];
+          const itinId = firstItinerary.id;
+
+          // 2. Fetch itinerary detail with flights & hotels
+          const detailRes = await fetch(`${API_BASE}/api/itineraries/${itinId}`);
+          if (detailRes.ok) {
+            const detailJson = await detailRes.json();
+            if (detailJson.success && detailJson.data) {
+              const detail = detailJson.data;
+
+              // Map backend flights to frontend Flight type
+              if (detail.flights && detail.flights.length > 0) {
+                const mappedFlights: Flight[] = detail.flights.map((f: any) => ({
+                  id: f.id,
+                  airline: f.airline,
+                  flightNumber: f.flightNumber,
+                  origin: f.origin,
+                  destination: f.destination,
+                  scheduledDeparture: f.scheduledDeparture,
+                  scheduledArrival: f.scheduledArrival,
+                  estimatedDeparture: f.estimatedDeparture || f.scheduledDeparture,
+                  estimatedArrival: f.estimatedArrival || f.scheduledArrival,
+                  status: f.status,
+                  terminal: f.terminal || 'Terminal 2',
+                  gate: f.gate || 'Gate TBD',
+                }));
+                setFlights(mappedFlights);
+              }
+
+              // Map hotel
+              if (detail.hotel) {
+                const h = detail.hotel;
+                setHotel({
+                  id: h.id || 'HOTEL-LON-001',
+                  itineraryId: itinId,
+                  hotelName: h.hotelName,
+                  location: h.location || 'London, UK',
+                  checkIn: h.checkIn?.split('T')[0] || '2026-06-10',
+                  checkOut: h.checkOut?.split('T')[0] || '2026-06-13',
+                  bookingReference: h.bookingReference || 'HTL-REF',
+                  status: h.status || 'CONFIRMED',
+                  originalCheckIn: h.checkIn?.split('T')[0],
+                  pricePerNight: 7500,
+                  currency: 'INR',
+                });
+              }
+
+              // Check itinerary status
+              if (detail.status === 'DISRUPTED') {
+                setTripStatus('CANCELLED');
+                setHasDisruption(true);
+              }
+            }
+          }
+
+          // 3. Check for active disruptions
+          const disRes = await fetch(`${API_BASE}/api/disruptions`);
+          if (disRes.ok) {
+            const disJson = await disRes.json();
+            if (disJson.success && disJson.data && disJson.data.length > 0) {
+              setHasDisruption(true);
+              const latestDis = disJson.data[disJson.data.length - 1];
+              setLatestDisruptionId(latestDis.id);
+
+              // Determine trip status from disruption type
+              if (latestDis.type === 'CANCELLATION') {
+                setTripStatus('CANCELLED');
+              } else if (latestDis.type === 'DELAY') {
+                setTripStatus('DELAYED');
+              } else if (latestDis.type === 'MISSED_CONNECTION') {
+                setTripStatus('APPROVAL_REQUIRED');
+              } else {
+                setTripStatus('CANCELLED');
+              }
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Dashboard: Using fallback data', err);
+      // Set fallback flights if backend is unavailable
+      if (flights.length === 0) {
+        setFlights([
+          {
+            id: 'FLIGHT-101',
+            airline: 'Air India',
+            flightNumber: 'AI101',
+            origin: 'BOM',
+            destination: 'DEL',
+            scheduledDeparture: '2026-06-10T08:30:00Z',
+            scheduledArrival: '2026-06-10T10:45:00Z',
+            estimatedDeparture: '2026-06-10T08:30:00Z',
+            estimatedArrival: '2026-06-10T10:45:00Z',
+            status: 'SCHEDULED',
+            terminal: 'Terminal 2',
+            gate: 'Gate 42B',
+          },
+          {
+            id: 'FLIGHT-203',
+            airline: 'Air India',
+            flightNumber: 'AI203',
+            origin: 'DEL',
+            destination: 'LHR',
+            scheduledDeparture: '2026-06-10T13:45:00Z',
+            scheduledArrival: '2026-06-10T18:30:00Z',
+            estimatedDeparture: '2026-06-10T13:45:00Z',
+            estimatedArrival: '2026-06-10T18:30:00Z',
+            status: 'SCHEDULED',
+            terminal: 'Terminal 3',
+            gate: 'Gate 18',
+          },
+        ]);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  const handleSimulate = async (scenario: string) => {
     setActiveScenario(scenario);
+
+    if (scenario === 'NORMAL') {
+      // Reset: reload fresh data
+      setTripStatus('NORMAL');
+      setHasDisruption(false);
+      await fetchDashboardData();
+      return;
+    }
+
+    // Try to trigger disruption via backend API
+    try {
+      const eventType = scenario === 'DELAY' ? 'DELAY' : 'CANCELLATION';
+      const res = await fetch(`${API_BASE}/api/disruptions/simulate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventType,
+          flightId: 'FLT-001',
+          itineraryId: 'TRIP-001',
+          delayMinutes: scenario === 'DELAY' ? 180 : 0,
+        }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          setLatestDisruptionId(json.data.disruptionId || json.data.id || 'DISRUPT-001');
+        }
+      }
+    } catch {
+      // API unavailable, proceed with client-side simulation
+    }
+
+    // Update local state regardless
     if (scenario === 'CANCELLATION') {
       setTripStatus('CANCELLED');
       setHasDisruption(true);
       setFlights((prev) =>
-        prev.map((f) =>
-          f.id === 'FLIGHT-101' ? { ...f, status: 'CANCELLED' } : { ...f, status: 'DELAYED' }
+        prev.map((f, idx) =>
+          idx === 0 ? { ...f, status: 'CANCELLED' } : { ...f, status: 'DELAYED' }
         )
       );
     } else if (scenario === 'DELAY') {
       setTripStatus('DELAYED');
       setHasDisruption(true);
       setFlights((prev) =>
-        prev.map((f) =>
-          f.id === 'FLIGHT-101' ? { ...f, status: 'DELAYED' } : f
+        prev.map((f, idx) =>
+          idx === 0 ? { ...f, status: 'DELAYED' } : f
         )
       );
     } else if (scenario === 'MISSED_CONNECTION') {
       setTripStatus('APPROVAL_REQUIRED');
       setHasDisruption(true);
       setFlights((prev) =>
-        prev.map((f) =>
-          f.id === 'FLIGHT-101' ? { ...f, status: 'DELAYED' } : { ...f, status: 'CANCELLED' }
+        prev.map((f, idx) =>
+          idx === 0 ? { ...f, status: 'DELAYED' } : { ...f, status: 'CANCELLED' }
         )
       );
     } else if (scenario === 'BOOKING_FAILURE') {
       setTripStatus('FAILED');
       setHasDisruption(true);
-    } else {
-      setTripStatus('NORMAL');
-      setHasDisruption(false);
-      setFlights((prev) =>
-        prev.map((f) => ({ ...f, status: 'SCHEDULED' }))
-      );
     }
   };
 
@@ -120,6 +254,17 @@ export default function DashboardPage() {
     },
   ];
 
+  if (loading && flights.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+        <div className="flex flex-col items-center gap-3 text-slate-400">
+          <RefreshCw className="w-6 h-6 animate-spin text-blue-400" />
+          <span className="text-xs font-mono">Loading your trip data...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8 text-slate-100">
       {/* Top Welcome Header */}
@@ -139,7 +284,15 @@ export default function DashboardPage() {
           </p>
         </div>
 
-
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={fetchDashboardData}
+          className="flex items-center gap-1.5 text-xs"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+          <span>Refresh</span>
+        </Button>
       </div>
 
       {/* Demo Controls for Hackathon Judges (Section 33) */}
@@ -166,12 +319,12 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex flex-wrap gap-2.5">
-            <Link href="/disruptions/DISRUPT-001">
+            <Link href={`/disruptions/${latestDisruptionId}`}>
               <Button variant="secondary" size="md">
                 Disruption Analysis
               </Button>
             </Link>
-            <Link href="/alternatives/DISRUPT-001">
+            <Link href={`/alternatives/${latestDisruptionId}`}>
               <Button variant="success" size="md" className="gap-1.5 shadow-md shadow-emerald-950/40">
                 <span>⚡</span> Review Alternatives & Rebook →
               </Button>
@@ -184,8 +337,14 @@ export default function DashboardPage() {
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4 bg-slate-900/60 border-slate-800">
           <span className="text-xs text-slate-400 block font-medium">Trip Route</span>
-          <p className="text-lg font-bold text-slate-100 mt-1">BOM → LHR</p>
-          <span className="text-[11px] text-slate-500">1 Layover at DEL</span>
+          <p className="text-lg font-bold text-slate-100 mt-1">
+            {flights.length >= 2
+              ? `${flights[0].origin} → ${flights[flights.length - 1].destination}`
+              : 'BOM → LHR'}
+          </p>
+          <span className="text-[11px] text-slate-500">
+            {flights.length > 1 ? `${flights.length - 1} Layover${flights.length > 2 ? 's' : ''}` : 'Direct'}
+          </span>
         </Card>
 
         <Card className="p-4 bg-slate-900/60 border-slate-800">
@@ -219,7 +378,7 @@ export default function DashboardPage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
             <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-              <span>Connected Trip Timeline (Mumbai → London)</span>
+              <span>Connected Trip Timeline ({flights.length >= 2 ? `${flights[0].origin} → ${flights[flights.length - 1].destination}` : 'Mumbai → London'})</span>
             </h2>
             <Link href="/trips/TRIP-001" className="text-xs text-blue-400 hover:text-blue-300 font-semibold underline">
               View Full Timeline →

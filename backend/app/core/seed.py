@@ -1,4 +1,4 @@
-﻿# Owner: Member C (Backend Lead / Core Services)
+# Owner: Member C (Backend Lead / Core Services)
 # ──────────────────────────────────────────────────────────────────────────────
 # Demo Data Seeder  --  Pre-populates the SRS core scenario
 #
@@ -11,6 +11,13 @@ from app.models.itinerary import (
     User, TravelPreferences, Itinerary, TravelSegment, Flight, HotelBooking,
 )
 from app.core.logging import logger
+import hashlib
+
+
+def _hash_password(password: str) -> str:
+    """Hash password matching the auth endpoint logic."""
+    salted = f"routepilot_salt_{password}"
+    return hashlib.sha256(salted.encode()).hexdigest()
 
 
 def seed_demo_data(db: Session):
@@ -28,6 +35,7 @@ def seed_demo_data(db: Session):
         name="Arjun Mehta",
         email="arjun.mehta@example.com",
         phone="+91-98765-43210",
+        password_hash=_hash_password("arjun123"),
     )
     db.add(user)
 

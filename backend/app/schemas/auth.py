@@ -5,6 +5,7 @@ from app.schemas.common import ApiResponse, ApiError  # noqa: F401 — canonical
 
 class SignupPayload(BaseModel):
     email: str
+    password: Optional[str] = None
     role: str
     name: str
     phone: Optional[str] = None

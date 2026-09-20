@@ -54,11 +54,37 @@ def get_flight_status(id: str, db: Session = Depends(get_db)):
 
 @router.post("", response_model=ApiResponse)
 def create_flight(payload: dict, db: Session = Depends(get_db)):
-    """Create a new flight (Company action)"""
+    """Create a new flight (Company action) with proper segment linkage."""
     from datetime import datetime
+    
+    # Determine itinerary to link to
+    itinerary_id = payload.get("itineraryId") or payload.get("itinerary_id")
+    if not itinerary_id:
+        # Link to the first available itinerary (demo mode)
+        from app.models.itinerary import Itinerary
+        first_itin = db.query(Itinerary).first()
+        if first_itin:
+            itinerary_id = first_itin.id
+    
+    # Create TravelSegment first
+    seg_id = generate_id("SEG-")
+    if itinerary_id:
+        # Determine next sequence order
+        existing_count = db.query(TravelSegment).filter(
+            TravelSegment.itinerary_id == itinerary_id
+        ).count()
+        segment = TravelSegment(
+            id=seg_id,
+            itinerary_id=itinerary_id,
+            segment_type="FLIGHT",
+            sequence_order=existing_count + 1,
+            booking_reference=payload.get("bookingReference") or payload.get("booking_reference"),
+        )
+        db.add(segment)
+    
     flight = Flight(
         id=generate_id("FLT-"),
-        segment_id=payload.get("segmentId") or payload.get("segment_id") or generate_id("SEG-"),
+        segment_id=seg_id,
         airline=payload.get("airline", "Unknown"),
         flight_number=payload.get("flightNumber", payload.get("flight_number", "")),
         origin=payload.get("origin", ""),

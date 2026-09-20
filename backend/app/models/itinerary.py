@@ -24,6 +24,7 @@ class User(Base):
     name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
     phone = Column(String)
+    password_hash = Column(String)
     role = Column(String, default="TRAVELER")
     company_name = Column(String)
     airline_code = Column(String)

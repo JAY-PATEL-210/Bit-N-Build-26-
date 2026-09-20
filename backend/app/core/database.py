@@ -63,6 +63,8 @@ def create_tables():
                     conn.execute(text("ALTER TABLE users ADD COLUMN company_name VARCHAR"))
                 if "airline_code" not in cols:
                     conn.execute(text("ALTER TABLE users ADD COLUMN airline_code VARCHAR"))
+                if "password_hash" not in cols:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN password_hash VARCHAR"))
                 conn.commit()
         except Exception:
             pass
