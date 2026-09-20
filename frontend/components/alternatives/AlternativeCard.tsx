@@ -24,7 +24,7 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
           ? 'bg-slate-900/90 border-emerald-500/70 shadow-lg shadow-emerald-950/40 ring-1 ring-emerald-500/30'
           : isCompliant
           ? 'bg-slate-900/70 border-slate-800 hover:border-slate-700'
-          : 'bg-slate-900/40 border-red-950/60 hover:border-red-900/80 opacity-90'
+          : 'bg-slate-900/40 border-amber-950/60 hover:border-amber-900/80 opacity-90'
       }`}
     >
       {/* Top Header: Airline, Badges, and Price */}
@@ -41,7 +41,7 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
               className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
                 isCompliant
                   ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-800/80'
-                  : 'bg-red-950/80 text-red-400 border border-red-800/80'
+                  : 'bg-amber-950/80 text-amber-300 border border-amber-800/80'
               }`}
             >
               {isCompliant ? '✓ Within Policy (≤ ₹20,000)' : '⚠️ Exceeds Policy Limit'}
@@ -54,7 +54,7 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
           </div>
 
           <h3 className="text-xl font-bold text-white pt-1">
-            {alternative.airline} <span className="text-blue-400 font-mono">({alternative.flightNumber})</span>
+            {alternative.airline} <span className="text-sky-400 font-mono">({alternative.flightNumber})</span>
           </h3>
           <p className="text-xs text-slate-400">
             {alternative.origin || 'DEL'} → {alternative.destination || 'LHR'} • {alternative.duration} •{' '}
@@ -79,7 +79,7 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
         <div className="flex flex-col items-center justify-center">
           <span className="text-[10px] text-slate-400">{alternative.duration}</span>
           <div className="w-full h-0.5 bg-slate-700 relative my-1">
-            <div className="absolute left-1/2 -top-1 -translate-x-1/2 w-2 h-2 rounded-full bg-blue-500"></div>
+            <div className="absolute left-1/2 -top-1 -translate-x-1/2 w-2 h-2 rounded-full bg-sky-500"></div>
           </div>
           <span className="text-[10px] text-slate-500">
             {alternative.stops === 0 ? 'Direct' : `${alternative.stops} Stop`}
@@ -93,12 +93,12 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
 
       {/* AI Reasoning & Explanation Box (Feature 4: Explainable Decisions) */}
       {alternative.explanation && (
-        <div className="p-3 rounded-lg bg-slate-950 border border-slate-800/90 space-y-1.5">
+        <div className="p-3 rounded-lg bg-slate-950 border border-indigo-950/80 space-y-1.5">
           <div className="flex justify-between items-center text-[11px]">
-            <span className="font-semibold text-slate-300 flex items-center gap-1.5">
-              <span className="text-blue-400">✨</span> Autonomous Selection Rationale:
+            <span className="font-semibold text-indigo-300 flex items-center gap-1.5">
+              <span className="text-indigo-400">✨</span> Autonomous Selection Rationale:
             </span>
-            <span className="text-slate-400 font-mono">
+            <span className="text-indigo-400 font-mono font-bold">
               Confidence: {Math.round(alternative.confidence * 100)}%
             </span>
           </div>
@@ -109,7 +109,7 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
               {alternative.reasonCodes.map((code) => (
                 <span
                   key={code}
-                  className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-900 border border-slate-800 text-slate-400"
+                  className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-900 border border-indigo-900/60 text-indigo-300"
                 >
                   #{code}
                 </span>
@@ -134,7 +134,7 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
               ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-900/40'
               : isCompliant
               ? 'bg-blue-600 hover:bg-blue-500 text-white'
-              : 'bg-amber-700 hover:bg-amber-600 text-white'
+              : 'bg-amber-600 hover:bg-amber-500 text-white shadow-md shadow-amber-900/30'
           } ${isSelecting ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {isSelecting ? (

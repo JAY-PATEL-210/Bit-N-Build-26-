@@ -89,14 +89,14 @@ export default function AlternativesPage({ params }: { params: { id: string } })
         <div className="border-b border-slate-800 pb-5">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <span className="text-xs font-mono font-bold tracking-wider uppercase text-emerald-400">
+              <span className="text-xs font-mono font-bold tracking-wider uppercase text-indigo-400">
                 AI Decision Engine (FR-06, FR-07)
               </span>
               <h1 className="text-3xl font-extrabold text-white tracking-tight mt-1">
                 Ranked Alternative Flights
               </h1>
               <p className="text-slate-400 text-sm mt-1">
-                Disruption: <span className="text-red-400 font-semibold">AI101 Mumbai → Delhi Cancelled</span> • Downstream Destination: London (LHR)
+                Disruption: <span className="text-rose-400 font-semibold">AI101 Mumbai → Delhi Cancelled</span> • Downstream Destination: London (LHR)
               </p>
             </div>
 
@@ -132,8 +132,8 @@ export default function AlternativesPage({ params }: { params: { id: string } })
                   Recommended Autonomous Action
                 </span>
               </div>
-              <span className="text-xs font-mono text-emerald-400 bg-emerald-950 px-2.5 py-0.5 rounded border border-emerald-800">
-                Confidence: {Math.round(topPick.confidence * 100)}%
+              <span className="text-xs font-mono text-indigo-300 bg-indigo-950 px-2.5 py-0.5 rounded border border-indigo-800">
+                AI Confidence: {Math.round(topPick.confidence * 100)}%
               </span>
             </div>
 
@@ -176,7 +176,7 @@ export default function AlternativesPage({ params }: { params: { id: string } })
             Evaluating candidate alternatives against corporate travel policies...
           </div>
         ) : error ? (
-          <div className="p-6 rounded-xl bg-red-950/40 border border-red-800 text-red-300 text-sm">
+          <div className="p-6 rounded-xl bg-rose-950/40 border border-rose-800 text-rose-300 text-sm">
             {error}
           </div>
         ) : viewMode === 'CARDS' ? (

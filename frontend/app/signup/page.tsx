@@ -107,8 +107,8 @@ export default function SignupPage() {
         <div className="p-6 sm:p-7 rounded-3xl bg-slate-900/90 border border-slate-700/60 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] backdrop-blur-2xl space-y-4">
           {/* Feedback Banners */}
           {error && (
-            <div className="p-3 rounded-xl bg-red-950/80 border border-red-800/80 text-red-200 text-xs flex items-center gap-2.5">
-              <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+            <div className="p-3 rounded-xl bg-rose-950/80 border border-rose-800/80 text-rose-200 text-xs flex items-center gap-2.5">
+              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
               <span className="font-medium">{error}</span>
             </div>
           )}

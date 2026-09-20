@@ -23,15 +23,22 @@ module.exports = {
           700: '#1d4ed8',
         },
         status: {
-          normal: '#10b981',
-          delayed: '#f59e0b',
-          cancelled: '#ef4444',
-          analyzing: '#8b5cf6',
-          searching: '#06b6d4',
-          approval: '#f97316',
-          rebooking: '#6366f1',
-          confirmed: '#10b981',
-          failed: '#f43f5e',
+          normal: '#10b981',    // Emerald (Healthy & Active)
+          delayed: '#f59e0b',   // Amber (Caution & Delay)
+          cancelled: '#f43f5e', // Rose (Critical Disruption)
+          analyzing: '#6366f1', // Indigo (AI Reasoning)
+          searching: '#0ea5e9', // Sky (Operational Transit Search)
+          approval: '#f59e0b',  // Amber (Human Escalation)
+          rebooking: '#6366f1', // Indigo (Autonomous Action)
+          confirmed: '#10b981', // Emerald (Confirmed & Resolved)
+          failed: '#f43f5e',    // Rose (Action Error)
+        },
+        semantic: {
+          brand: '#0ea5e9',     // Sky: Brand & Transit
+          success: '#10b981',   // Emerald: Normal & Confirmed
+          warning: '#f59e0b',   // Amber: Delay & Human Approval
+          critical: '#f43f5e',  // Rose: Cancellation & Critical Alert
+          ai: '#6366f1',        // Indigo: Autonomous Agentic AI
         },
       },
       animation: {

@@ -128,8 +128,8 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
               className={`p-5 rounded-2xl border transition space-y-4 ${
                 !item.read
                   ? isCritical
-                    ? 'bg-red-950/20 border-red-800/80 shadow-md shadow-red-950/30'
-                    : 'bg-slate-900 border-blue-800/70 shadow-md'
+                    ? 'bg-rose-950/25 border-rose-800/80 shadow-md shadow-rose-950/30'
+                    : 'bg-slate-900 border-sky-800/70 shadow-md'
                   : 'bg-slate-900/50 border-slate-800/60 opacity-90'
               }`}
             >
@@ -137,7 +137,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
               <div className="flex justify-between items-start gap-2">
                 <div className="flex items-center gap-2">
                   {!item.read && (
-                    <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                    <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
                   )}
                   <h4 className="font-bold text-white text-base">{item.title}</h4>
                 </div>
@@ -237,7 +237,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                   )}
                   {item.hotelChanges && (
                     <span>
-                      Hotel: <strong className="text-purple-300">{item.hotelChanges}</strong>
+                      Hotel: <strong className="text-indigo-300">{item.hotelChanges}</strong>
                     </span>
                   )}
                 </div>

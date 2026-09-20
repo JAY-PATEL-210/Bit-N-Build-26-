@@ -43,7 +43,7 @@ export const AlternativeComparison: React.FC<AlternativeComparisonProps> = ({
                 <td className="p-3.5">
                   <div className="font-bold text-white flex items-center gap-2">
                     {alt.airline}
-                    <span className="font-mono text-blue-400 text-[11px]">({alt.flightNumber})</span>
+                    <span className="font-mono text-sky-400 text-[11px]">({alt.flightNumber})</span>
                     {isRec && (
                       <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-900 text-emerald-300 border border-emerald-700">
                         Top Pick
@@ -78,10 +78,10 @@ export const AlternativeComparison: React.FC<AlternativeComparisonProps> = ({
                     className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold ${
                       isCompliant
                         ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
-                        : 'bg-red-950 text-red-400 border border-red-800'
+                        : 'bg-amber-950/80 text-amber-300 border border-amber-800/80'
                     }`}
                   >
-                    {isCompliant ? '✓ Policy Compliant' : '✗ Over Budget'}
+                    {isCompliant ? '✓ Policy Compliant' : '⚠️ Over Budget'}
                   </span>
                 </td>
 
@@ -90,7 +90,7 @@ export const AlternativeComparison: React.FC<AlternativeComparisonProps> = ({
                     <div className="w-16 h-1.5 rounded-full bg-slate-800 overflow-hidden">
                       <div
                         className={`h-full rounded-full ${
-                          alt.confidence >= 0.8 ? 'bg-emerald-400' : 'bg-amber-400'
+                          alt.confidence >= 0.8 ? 'bg-indigo-400' : 'bg-amber-400'
                         }`}
                         style={{ width: `${Math.round(alt.confidence * 100)}%` }}
                       ></div>
@@ -107,10 +107,10 @@ export const AlternativeComparison: React.FC<AlternativeComparisonProps> = ({
                     disabled={isSelecting}
                     className={`px-3 py-1.5 rounded text-[11px] font-bold transition ${
                       isRec
-                        ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                        ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm shadow-emerald-900/30'
                         : isCompliant
                         ? 'bg-blue-600 hover:bg-blue-500 text-white'
-                        : 'bg-amber-700 hover:bg-amber-600 text-white'
+                        : 'bg-amber-600 hover:bg-amber-500 text-white shadow-sm shadow-amber-900/30'
                     }`}
                   >
                     {isRec ? 'Rebook' : isCompliant ? 'Select' : 'Escalate'}

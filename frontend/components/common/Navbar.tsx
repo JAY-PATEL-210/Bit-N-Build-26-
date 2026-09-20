@@ -114,9 +114,9 @@ export const Navbar: React.FC = () => {
           {!isCompany && (
             <Link
               href="/disruptions/DISRUPT-001"
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-950/60 hover:bg-red-900/70 border border-red-800/60 text-red-200 text-xs font-bold transition shadow-sm hover:scale-[1.02] active:scale-98"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-950/70 hover:bg-rose-900/80 border border-rose-800/70 text-rose-200 text-xs font-bold transition shadow-sm hover:scale-[1.02] active:scale-98"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping" />
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping" />
               <span>Simulate Disruption</span>
             </Link>
           )}
@@ -129,12 +129,12 @@ export const Navbar: React.FC = () => {
                 <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-[10px] font-bold text-white shadow-inner">
                   {displayName.charAt(0).toUpperCase()}
                 </div>
-                <div className="hidden sm:flex flex-col text-left leading-tight">
-                  <span className="font-semibold text-slate-200 max-w-[110px] truncate text-[11px]">
+                <div className="flex flex-col">
+                  <span className="font-semibold text-white leading-tight capitalize">
                     {displayName}
                   </span>
-                  <span className="text-[9px] font-mono text-sky-400 font-bold uppercase tracking-wider">
-                    {currentUser.role === 'COMPANY' ? 'Airline Ops' : 'Traveler'}
+                  <span className="text-[10px] text-slate-400 font-mono leading-tight">
+                    {currentUser.role === 'COMPANY' ? 'Airline Partner' : 'Traveler'}
                   </span>
                 </div>
               </div>
@@ -144,7 +144,7 @@ export const Navbar: React.FC = () => {
                 type="button"
                 onClick={handleLogout}
                 title="Sign Out"
-                className="p-1.5 rounded-lg text-slate-400 hover:text-red-300 hover:bg-red-950/50 border border-transparent hover:border-red-800/60 transition"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-300 hover:bg-rose-950/50 border border-transparent hover:border-rose-800/60 transition"
               >
                 <LogOut className="w-4 h-4" />
               </button>

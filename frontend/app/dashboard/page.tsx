@@ -147,12 +147,12 @@ export default function DashboardPage() {
 
       {/* Disruption Alert Banner (Section 12: Disruption Status) */}
       {hasDisruption && (
-        <div className="p-6 rounded-2xl bg-gradient-to-r from-red-950/80 via-slate-900/90 to-slate-900/90 border border-red-700/80 shadow-[0_0_35px_-5px_rgba(239,68,68,0.3)] backdrop-blur-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-in fade-in duration-300 relative overflow-hidden group">
+        <div className="p-6 rounded-2xl bg-gradient-to-r from-rose-950/80 via-slate-900/90 to-slate-900/90 border border-rose-700/80 shadow-[0_0_35px_-5px_rgba(244,63,94,0.3)] backdrop-blur-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-in fade-in duration-300 relative overflow-hidden group">
           <div className="absolute inset-0 illusion-shimmer opacity-30 pointer-events-none" />
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full bg-red-400 animate-ping"></span>
-              <span className="text-xs font-bold font-mono tracking-wider uppercase text-red-300">
+              <span className="h-2.5 w-2.5 rounded-full bg-rose-400 animate-ping"></span>
+              <span className="text-xs font-bold font-mono tracking-wider uppercase text-rose-300">
                 ACTIVE TRAVEL DISRUPTION DETECTED
               </span>
             </div>
@@ -172,7 +172,7 @@ export default function DashboardPage() {
               </Button>
             </Link>
             <Link href="/alternatives/DISRUPT-001">
-              <Button variant="emerald" size="md" className="gap-1.5">
+              <Button variant="success" size="md" className="gap-1.5 shadow-md shadow-emerald-950/40">
                 <span>⚡</span> Review Alternatives & Rebook →
               </Button>
             </Link>
@@ -283,22 +283,35 @@ export default function DashboardPage() {
         </div>
 
         <div className="space-y-2.5">
-          {recentActivities.map((act, i) => (
-            <div
-              key={i}
-              className="p-3.5 rounded-xl bg-slate-950 border border-slate-800/80 flex flex-col sm:flex-row justify-between sm:items-center text-xs gap-2"
-            >
-              <div className="flex items-center gap-2.5">
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300">
-                  {act.actor}
-                </span>
-                <span className="font-bold text-white font-mono">{act.event}</span>
-                <span className="text-slate-400 hidden sm:inline">•</span>
-                <span className="text-slate-300">{act.desc}</span>
+          {recentActivities.map((act, i) => {
+            const isAI = act.actor === 'AI_AGENT';
+            const isSystem = act.actor === 'SYSTEM';
+
+            return (
+              <div
+                key={i}
+                className="p-3.5 rounded-xl bg-slate-950 border border-slate-800/80 flex flex-col sm:flex-row justify-between sm:items-center text-xs gap-2"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${
+                      isAI
+                        ? 'bg-indigo-950 text-indigo-300 border border-indigo-800'
+                        : isSystem
+                        ? 'bg-sky-950 text-sky-300 border border-sky-800'
+                        : 'bg-slate-800 text-slate-300 border border-slate-700'
+                    }`}
+                  >
+                    {act.actor}
+                  </span>
+                  <span className="font-bold text-white font-mono">{act.event}</span>
+                  <span className="text-slate-400 hidden sm:inline">•</span>
+                  <span className="text-slate-300">{act.desc}</span>
+                </div>
+                <span className="text-[11px] font-mono text-slate-500">{act.time}</span>
               </div>
-              <span className="text-[11px] font-mono text-slate-500">{act.time}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

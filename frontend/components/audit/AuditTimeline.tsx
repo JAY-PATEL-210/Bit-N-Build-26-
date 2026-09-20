@@ -57,10 +57,10 @@ export const AuditTimeline: React.FC<AuditTimelineProps> = ({ logs, isLoading })
               <div
                 className={`absolute -left-[31px] top-1.5 w-3.5 h-3.5 rounded-full border-2 border-slate-950 transition ${
                   isAI
-                    ? 'bg-purple-500 ring-2 ring-purple-900'
+                    ? 'bg-indigo-500 ring-2 ring-indigo-900'
                     : isSystem
-                    ? 'bg-emerald-500 ring-2 ring-emerald-900'
-                    : 'bg-blue-500 ring-2 ring-blue-900'
+                    ? 'bg-sky-500 ring-2 ring-sky-900'
+                    : 'bg-slate-400 ring-2 ring-slate-800'
                 }`}
               />
 
@@ -71,10 +71,10 @@ export const AuditTimeline: React.FC<AuditTimelineProps> = ({ logs, isLoading })
                     <span
                       className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${
                         isAI
-                          ? 'bg-purple-950 text-purple-300 border border-purple-800'
+                          ? 'bg-indigo-950 text-indigo-300 border border-indigo-800'
                           : isSystem
-                          ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                          : 'bg-blue-950 text-blue-300 border border-blue-800'
+                          ? 'bg-sky-950 text-sky-300 border border-sky-800'
+                          : 'bg-slate-800 text-slate-300 border border-slate-700'
                       }`}
                     >
                       {entry.actor}
@@ -195,7 +195,7 @@ export const AuditTimeline: React.FC<AuditTimelineProps> = ({ logs, isLoading })
                 {selectedLog.confidence !== undefined && (
                   <div>
                     <span className="text-slate-500 block">Confidence</span>
-                    <span className="text-purple-400 font-mono font-bold">{Math.round(selectedLog.confidence * 100)}%</span>
+                    <span className="text-indigo-400 font-mono font-bold">{Math.round(selectedLog.confidence * 100)}%</span>
                   </div>
                 )}
               </div>

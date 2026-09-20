@@ -18,7 +18,7 @@ export default function ActivityPage() {
           <div className="flex items-center gap-2">
             <Link href="/dashboard" className="hover:text-white transition">Dashboard</Link>
             <span>/</span>
-            <span className="text-purple-400 font-semibold">Audit & Activity Timeline</span>
+            <span className="text-indigo-400 font-semibold">Audit & Activity Timeline</span>
           </div>
 
           <button
@@ -31,7 +31,7 @@ export default function ActivityPage() {
 
         {/* Header */}
         <div className="border-b border-slate-800 pb-4">
-          <span className="text-xs font-mono font-bold tracking-wider uppercase text-purple-400">
+          <span className="text-xs font-mono font-bold tracking-wider uppercase text-indigo-400">
             FR-13 & Sections 41, 42 Compliance
           </span>
           <h1 className="text-3xl font-extrabold text-white mt-1">Audit & Decision Trail</h1>
