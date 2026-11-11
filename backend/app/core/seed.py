@@ -158,5 +158,76 @@ def seed_demo_data(db: Session):
         )
         db.add(hotel)
 
+    # ── 3. TRIP-001 (Mumbai -> Delhi -> London) for core disruption scenarios
+    itin_001 = Itinerary(
+        id="TRIP-001",
+        user_id="USR-TRV-A",
+        trip_name="Mumbai to London via Delhi",
+        start_date=demo_start,
+        end_date=demo_start + timedelta(days=3),
+        status="ACTIVE",
+    )
+    db.add(itin_001)
+
+    seg_001 = TravelSegment(
+        id="SEG-001",
+        itinerary_id="TRIP-001",
+        segment_type="FLIGHT",
+        sequence_order=1,
+        booking_reference="PNR-001",
+    )
+    seg_002 = TravelSegment(
+        id="SEG-002",
+        itinerary_id="TRIP-001",
+        segment_type="FLIGHT",
+        sequence_order=2,
+        booking_reference="PNR-002",
+    )
+    db.add(seg_001)
+    db.add(seg_002)
+
+    flt_001 = Flight(
+        id="FLT-001",
+        segment_id="SEG-001",
+        airline="Air India",
+        flight_number="AI101",
+        origin="BOM",
+        destination="DEL",
+        scheduled_departure=demo_start,
+        scheduled_arrival=demo_start + timedelta(hours=2, minutes=30),
+        status="SCHEDULED",
+        terminal="T2",
+        gate="G10",
+    )
+    flt_002 = Flight(
+        id="FLT-002",
+        segment_id="SEG-002",
+        airline="Air India",
+        flight_number="AI203",
+        origin="DEL",
+        destination="LHR",
+        scheduled_departure=demo_start + timedelta(hours=5),
+        scheduled_arrival=demo_start + timedelta(hours=12, minutes=30),
+        status="SCHEDULED",
+        terminal="T3",
+        gate="G18",
+    )
+    db.add(flt_001)
+    db.add(flt_002)
+
+    htl_001 = HotelBooking(
+        id="HTL-001",
+        itinerary_id="TRIP-001",
+        hotel_name="Hilton London",
+        location="London, UK",
+        check_in=demo_start + timedelta(hours=13, minutes=30),
+        check_out=demo_start + timedelta(days=3),
+        booking_reference="HTL-001X",
+        price=18000.0,
+        currency="INR",
+        status="CONFIRMED",
+    )
+    db.add(htl_001)
+
     db.commit()
     logger.info("SEED  Demo scenarios ready. 4 Travelers and 2 Agencies provisioned.")

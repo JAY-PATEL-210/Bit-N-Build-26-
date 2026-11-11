@@ -6,6 +6,7 @@ from app.core.database import get_db
 from app.models.itinerary import User
 from app.schemas.auth import SignupPayload, LoginPayload, AuthResponse, UserResponse
 from app.schemas.common import ApiResponse, ApiError
+from app.core.firebase import set_firestore_document, get_firestore_collection
 
 router = APIRouter()
 
@@ -31,9 +32,43 @@ def _verify_password(password: str, password_hash: str) -> bool:
 
 @router.post("/signup", response_model=ApiResponse)
 def signup(payload: SignupPayload, db: Session = Depends(get_db)):
+    user_id = _generate_user_id()
+    new_user = User(
+        id=user_id,
+        email=payload.email,
+        name=payload.name or "Traveler",
+        role=payload.role,
+        phone=payload.phone,
+        company_name=payload.company_name,
+        airline_code=payload.airline_code,
+        password_hash=_hash_password(payload.password) if payload.password else None,
+    )
+    db.add(new_user)
+    db.commit()
+
+    # Sync with Firebase Firestore
+    set_firestore_document("users", user_id, {
+        "id": user_id,
+        "email": payload.email,
+        "name": payload.name or "Traveler",
+        "role": payload.role,
+        "phone": payload.phone,
+        "companyName": payload.company_name,
+        "airlineCode": payload.airline_code,
+    })
+
+    user_resp = UserResponse(
+        id=new_user.id,
+        email=new_user.email,
+        role=new_user.role,
+        name=new_user.name,
+        phone=new_user.phone,
+        companyName=new_user.company_name,
+        airlineCode=new_user.airline_code,
+    )
     return ApiResponse(
-        success=False,
-        error=ApiError(code="UNAUTHORIZED", message="Public registration is disabled for this demo.")
+        success=True,
+        data=AuthResponse(user=user_resp, token=_generate_token(new_user))
     )
 
 @router.get("/me", response_model=ApiResponse)
@@ -56,13 +91,25 @@ def get_user(id: str, db: Session = Depends(get_db)):
     """Get user profile by ID"""
     user = db.query(User).filter(User.id == id).first()
     if not user:
+        # Check Firestore
+        fb_users = get_firestore_collection("users")
+        fb_match = next((u for u in fb_users if u.get("id") == id), None)
+        if fb_match:
+            return ApiResponse(success=True, data=UserResponse(
+                id=fb_match.get("id", id),
+                email=fb_match.get("email", ""),
+                role=fb_match.get("role", "TRAVELER"),
+                name=fb_match.get("name", "Traveler"),
+                phone=fb_match.get("phone"),
+                companyName=fb_match.get("companyName"),
+                airlineCode=fb_match.get("airlineCode"),
+            ))
         return ApiResponse(success=False, error=ApiError(code="NOT_FOUND", message="User not found"))
     return ApiResponse(success=True, data=UserResponse(
         id=user.id, email=user.email, role=user.role, name=user.name,
         phone=user.phone, companyName=user.company_name, airlineCode=user.airline_code
     ))
 
-# Predefined accounts only for the demo
 @router.post("/login", response_model=ApiResponse)
 def login(payload: LoginPayload, db: Session = Depends(get_db)):
     email_lower = payload.email.strip().lower()
@@ -70,6 +117,22 @@ def login(payload: LoginPayload, db: Session = Depends(get_db)):
 
     user = db.query(User).filter(User.email == email_lower).first()
     
+    if not user:
+        # Check Firestore
+        fb_users = get_firestore_collection("users")
+        fb_match = next((u for u in fb_users if u.get("email", "").lower() == email_lower or u.get("username", "").lower() == email_lower), None)
+        if fb_match:
+            user = User(
+                id=fb_match.get("id", _generate_user_id()),
+                email=fb_match.get("email", email_lower),
+                name=fb_match.get("name", "Traveler"),
+                role=fb_match.get("role", "TRAVELER"),
+                company_name=fb_match.get("companyName"),
+                airline_code=fb_match.get("airlineCode"),
+            )
+            db.add(user)
+            db.commit()
+
     if not user:
         return ApiResponse(
             success=False,

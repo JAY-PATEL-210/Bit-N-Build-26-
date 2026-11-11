@@ -1,7 +1,7 @@
 'use client';
 
 // Owner: Member A (Frontend Lead) & Member B (Systems & Demo)
-// Route: /dashboard — Traveler dashboard connected to live backend APIs
+// Route: /dashboard — Traveler dashboard connected to Firebase Firestore
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -15,6 +15,8 @@ import { TripTimeline } from '@/components/trips/TripTimeline';
 import { Flight, HotelBooking, Disruption } from '@/types/index';
 import { RefreshCw } from 'lucide-react';
 import { authService } from '@/services/authService';
+import { itineraryService } from '@/services/itineraryService';
+import { disruptionService } from '@/services/disruptionService';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 
@@ -31,122 +33,125 @@ export default function DashboardPage() {
   const [flights, setFlights] = useState<Flight[]>([]);
   const [hotel, setHotel] = useState<HotelBooking | null>(null);
 
-  // Fetch real data from backend
+  // USER-to-TRIP mapping: maps the seeded Firestore user IDs to their trip IDs
+  const USER_TRIP_MAP: Record<string, string> = {
+    'traveler.ahmedabad@routepilot.com': 'TRIP-A',
+    'traveler.mumbai@routepilot.com': 'TRIP-B',
+    'traveler.delhi@routepilot.com': 'TRIP-C',
+    'traveler.bangalore@routepilot.com': 'TRIP-D',
+  };
+
+  // Fetch real data from Firestore via itineraryService
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
-    const user = authService.getCurrentUser();
-    const url = user ? `${API_BASE}/api/itineraries?user_id=${user.id}` : `${API_BASE}/api/itineraries`;
     try {
-      // 1. Fetch itineraries
-      const itinRes = await fetch(url);
-      if (itinRes.ok) {
-        const itinJson = await itinRes.json();
-        if (itinJson.success && itinJson.data && itinJson.data.length > 0) {
-          const firstItinerary = itinJson.data[0];
-          const itinId = firstItinerary.id;
-          setItineraryId(itinId);
+      const user = authService.getCurrentUser();
 
-          // 2. Fetch itinerary detail with flights & hotels
-          const detailRes = await fetch(`${API_BASE}/api/itineraries/${itinId}`);
-          if (detailRes.ok) {
-            const detailJson = await detailRes.json();
-            if (detailJson.success && detailJson.data) {
-              const detail = detailJson.data;
-
-              // Map backend flights to frontend Flight type
-              if (detail.flights && detail.flights.length > 0) {
-                const mappedFlights: Flight[] = detail.flights.map((f: any) => ({
-                  id: f.id,
-                  airline: f.airline,
-                  flightNumber: f.flightNumber,
-                  origin: f.origin,
-                  destination: f.destination,
-                  scheduledDeparture: f.scheduledDeparture,
-                  scheduledArrival: f.scheduledArrival,
-                  estimatedDeparture: f.estimatedDeparture || f.scheduledDeparture,
-                  estimatedArrival: f.estimatedArrival || f.scheduledArrival,
-                  status: 'SCHEDULED', // Force clean state for repeatable demo
-                  terminal: f.terminal || 'Terminal 2',
-                  gate: f.gate || 'Gate TBD',
-                }));
-                setFlights(mappedFlights);
-              }
-
-              // Map hotel
-              if (detail.hotel) {
-                const h = detail.hotel;
-                setHotel({
-                  id: h.id || 'HOTEL-LON-001',
-                  itineraryId: itinId,
-                  hotelName: h.hotelName,
-                  location: h.location || 'London, UK',
-                  checkIn: h.checkIn?.split('T')[0] || '2026-06-10',
-                  checkOut: h.checkOut?.split('T')[0] || '2026-06-13',
-                  bookingReference: h.bookingReference || 'HTL-REF',
-                  status: h.status || 'CONFIRMED',
-                  originalCheckIn: h.checkIn?.split('T')[0],
-                  pricePerNight: 7500,
-                  currency: 'INR',
-                });
-              }
-
-              // Check itinerary status
-              if (detail.status === 'DISRUPTED') {
-                // Intentionally ignoring persistent DB disruption state on initial load
-                // so the dashboard always starts clean and responds to DemoControls.
-              }
-            }
-          }
-
-          // 3. Check for active disruptions
-          const disRes = await fetch(`${API_BASE}/api/disruptions`);
-          if (disRes.ok) {
-            const disJson = await disRes.json();
-            if (disJson.success && disJson.data && disJson.data.length > 0) {
-              const myDisruptions = disJson.data.filter((d: any) => d.itineraryId === itinId);
-              if (myDisruptions.length > 0) {
-                const latestDis = myDisruptions[myDisruptions.length - 1];
-                setLatestDisruptionId(latestDis.id || latestDis.disruptionId);
-              }
-            }
-          }
+      // 1. Determine itinerary ID for the logged-in traveler
+      let itinId = '';
+      if (user?.email) {
+        const normalizedEmail = user.email.trim().toLowerCase();
+        // Check the email-to-trip map first
+        if (USER_TRIP_MAP[normalizedEmail]) {
+          itinId = USER_TRIP_MAP[normalizedEmail];
         }
       }
-    } catch (err) {
-      console.warn('Dashboard: Using fallback data', err);
-      // Set fallback flights if backend is unavailable
-      if (flights.length === 0) {
+
+      // 2. Load itinerary from Firestore
+      let itinData: any = null;
+      if (itinId) {
+        const detailRes = await itineraryService.getItineraryById(itinId);
+        if (detailRes.success && detailRes.data) {
+          itinData = detailRes.data;
+        }
+      }
+
+      // 3. If no itinerary found by ID, try fetching all and picking the first one
+      if (!itinData) {
+        const allRes = await itineraryService.getItineraries();
+        if (allRes.success && allRes.data && allRes.data.length > 0) {
+          itinData = allRes.data[0];
+          itinId = itinData.id;
+        }
+      }
+
+      if (itinData) {
+        setItineraryId(itinData.id);
+
+        // 4. Map flights
+        if (itinData.flights && itinData.flights.length > 0) {
+          const mappedFlights: Flight[] = itinData.flights.map((f: any) => ({
+            id: f.id,
+            airline: f.airline || 'Demo Airlines',
+            flightNumber: f.flightNumber || '',
+            origin: f.origin || '',
+            destination: f.destination || '',
+            scheduledDeparture: f.scheduledDeparture || '',
+            scheduledArrival: f.scheduledArrival || '',
+            estimatedDeparture: f.estimatedDeparture || f.scheduledDeparture,
+            estimatedArrival: f.estimatedArrival || f.scheduledArrival,
+            status: f.status || 'SCHEDULED',
+            terminal: f.terminal || 'T1',
+            gate: f.gate || 'Gate TBD',
+          }));
+          setFlights(mappedFlights);
+        }
+
+        // 5. Map hotel
+        if (itinData.hotel) {
+          const h = itinData.hotel;
+          setHotel({
+            id: h.id || `HTL-${itinId}`,
+            itineraryId: itinData.id,
+            hotelName: h.hotelName || '',
+            location: h.location || '',
+            checkIn: h.checkIn?.split('T')[0] || '',
+            checkOut: h.checkOut?.split('T')[0] || '',
+            bookingReference: h.bookingReference || 'HTL-REF',
+            status: h.status || 'CONFIRMED',
+            originalCheckIn: h.checkIn?.split('T')[0],
+            pricePerNight: h.price ? Math.round(h.price / 3) : 7500,
+            currency: h.currency || 'INR',
+          });
+        }
+      } else {
+        // Fallback: show hardcoded demo data so the UI is never empty
+        setItineraryId('TRIP-A');
         setFlights([
           {
-            id: 'FLIGHT-101',
-            airline: 'Air India',
-            flightNumber: 'AI101',
-            origin: 'BOM',
+            id: 'FLT-TRIP-A-1',
+            airline: 'IndiGo',
+            flightNumber: '6E101',
+            origin: 'AMD',
             destination: 'DEL',
-            scheduledDeparture: '2026-06-10T08:30:00Z',
-            scheduledArrival: '2026-06-10T10:45:00Z',
-            estimatedDeparture: '2026-06-10T08:30:00Z',
-            estimatedArrival: '2026-06-10T10:45:00Z',
-            status: 'SCHEDULED',
-            terminal: 'Terminal 2',
-            gate: 'Gate 42B',
-          },
-          {
-            id: 'FLIGHT-203',
-            airline: 'Air India',
-            flightNumber: 'AI203',
-            origin: 'DEL',
-            destination: 'LHR',
-            scheduledDeparture: '2026-06-10T13:45:00Z',
-            scheduledArrival: '2026-06-10T18:30:00Z',
-            estimatedDeparture: '2026-06-10T13:45:00Z',
-            estimatedArrival: '2026-06-10T18:30:00Z',
-            status: 'SCHEDULED',
-            terminal: 'Terminal 3',
-            gate: 'Gate 18',
+            scheduledDeparture: '2026-11-15T10:00:00Z',
+            scheduledArrival: '2026-11-15T12:30:00Z',
+            estimatedDeparture: '2026-11-15T10:00:00Z',
+            estimatedArrival: '2026-11-15T12:30:00Z',
+            status: 'CANCELLED',
+            terminal: 'T1',
+            gate: 'G10',
           },
         ]);
       }
+
+      // 6. Check for active disruptions in Firestore
+      try {
+        const disRes = await disruptionService.getDisruptions();
+        if (disRes.success && disRes.data && disRes.data.length > 0) {
+          const myDisruptions = disRes.data.filter(
+            (d: any) => d.itineraryId === (itinId || itinData?.id)
+          );
+          if (myDisruptions.length > 0) {
+            const latest = myDisruptions[myDisruptions.length - 1];
+            setLatestDisruptionId(latest.id);
+          }
+        }
+      } catch {
+        // Disruptions are optional — ignore errors
+      }
+    } catch (err) {
+      console.error('Dashboard: Error loading Firestore data', err);
     } finally {
       setLoading(false);
     }

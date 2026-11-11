@@ -1,45 +1,43 @@
 // Owner: Member B (Frontend Systems / Interaction & Demo)
-// Sections 11, 14, 17, 39: Hotel Service
+// Hotel Service backed by Firebase Firestore
+import { collection, doc, getDoc, getDocs, setDoc, query, where } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import { ApiResponse, HotelBooking } from '../types';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
-
-const DEMO_HOTELS: Record<string, HotelBooking[]> = {
-  'TRIP-001': [
-    {
-      id: 'HOTEL-LON-001',
-      itineraryId: 'TRIP-001',
-      hotelName: 'The Landmark London',
-      location: 'Marylebone, London, UK',
-      checkIn: '2026-06-10',
-      checkOut: '2026-06-13',
-      bookingReference: 'HTL-LON-9921',
-      status: 'CONFIRMED',
-      originalCheckIn: '2026-06-10',
-      pricePerNight: 7500,
-      currency: 'INR',
-      actionTaken: 'NO_ACTION',
-    },
-  ],
-};
 
 export const hotelService = {
   async getHotelsByItinerary(itineraryId: string): Promise<ApiResponse<HotelBooking[]>> {
     try {
-      const res = await fetch(`${API_BASE}/api/itineraries/${itineraryId}/hotels`);
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success && json.data && json.data.length > 0) return json;
-      }
-    } catch {
-      // Fallback
-    }
+      const q = query(collection(db, 'hotel_bookings'), where('itineraryId', '==', itineraryId));
+      const snap = await getDocs(q);
 
-    return {
-      success: true,
-      data: DEMO_HOTELS[itineraryId] || DEMO_HOTELS['TRIP-001'],
-      error: null,
-    };
+      if (!snap.empty) {
+        const hotels: HotelBooking[] = snap.docs.map(d => ({
+          id: d.id,
+          ...d.data(),
+        } as HotelBooking));
+        return { success: true, data: hotels, error: null };
+      }
+
+      // If no exact itinerary match, return all hotels from Firestore
+      const allSnap = await getDocs(collection(db, 'hotel_bookings'));
+      const allHotels: HotelBooking[] = allSnap.docs.map(d => ({
+        id: d.id,
+        ...d.data(),
+      } as HotelBooking));
+
+      return {
+        success: true,
+        data: allHotels,
+        error: null,
+      };
+    } catch (err: any) {
+      console.error('Firestore getHotels error:', err);
+      return {
+        success: false,
+        data: [],
+        error: { code: 'FIRESTORE_ERROR', message: err.message },
+      };
+    }
   },
 
   async modifyHotel(
@@ -47,39 +45,40 @@ export const hotelService = {
     payload: { checkIn: string; checkOut?: string; reason?: string }
   ): Promise<ApiResponse<HotelBooking>> {
     try {
-      const res = await fetch(`${API_BASE}/api/hotels/${hotelId}/modify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success && json.data) return json;
-      }
-    } catch {
-      // Fallback
+      const hotelRef = doc(db, 'hotel_bookings', hotelId);
+      const existing = await getDoc(hotelRef);
+      const currentData = existing.exists() ? existing.data() : {};
+
+      const updated: HotelBooking = {
+        id: hotelId,
+        itineraryId: currentData.itineraryId || 'TRIP-A',
+        hotelName: currentData.hotelName || 'Hilton Delhi',
+        location: currentData.location || 'New Delhi, India',
+        checkIn: payload.checkIn,
+        checkOut: payload.checkOut || currentData.checkOut || '2026-09-25T10:00:00Z',
+        bookingReference: currentData.bookingReference || `HTL-${hotelId}`,
+        status: 'MODIFIED_AUTOMATICALLY',
+        originalCheckIn: currentData.originalCheckIn || currentData.checkIn,
+        modifiedCheckIn: payload.checkIn,
+        price: currentData.price || 15000,
+        currency: currentData.currency || 'INR',
+        actionTaken: 'MODIFY_CHECKIN',
+      };
+
+      await setDoc(hotelRef, updated, { merge: true });
+
+      return {
+        success: true,
+        data: updated,
+        error: null,
+      };
+    } catch (err: any) {
+      console.error('Firestore modifyHotel error:', err);
+      return {
+        success: false,
+        data: null as any,
+        error: { code: 'FIRESTORE_ERROR', message: err.message },
+      };
     }
-
-    const updated: HotelBooking = {
-      id: hotelId,
-      itineraryId: 'TRIP-001',
-      hotelName: 'The Landmark London',
-      location: 'Marylebone, London, UK',
-      checkIn: payload.checkIn,
-      checkOut: payload.checkOut || '2026-06-13',
-      bookingReference: 'HTL-LON-9921',
-      status: 'MODIFIED_AUTOMATICALLY',
-      originalCheckIn: '2026-06-10',
-      modifiedCheckIn: payload.checkIn,
-      pricePerNight: 7500,
-      currency: 'INR',
-      actionTaken: 'MODIFY_CHECKIN',
-    };
-
-    return {
-      success: true,
-      data: updated,
-      error: null,
-    };
   },
 };

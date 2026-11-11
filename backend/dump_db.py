@@ -1,29 +1,34 @@
-import sqlite3
 import json
-import datetime
+import httpx
 
-def dict_factory(cursor, row):
-    d = {}
-    for idx, col in enumerate(cursor.description):
-        val = row[idx]
-        if isinstance(val, bytes):
-            val = val.decode('utf-8', errors='ignore')
-        d[col[0]] = val
-    return d
+FIREBASE_PROJECT_ID = "pankti-56227"
+FIREBASE_API_KEY = "AIzaSyBiVJD488-syt7E2l0KkYBSmGEsR1Xl7XU"
+BASE_URL = f"https://firestore.googleapis.com/v1/projects/{FIREBASE_PROJECT_ID}/databases/(default)/documents"
 
-conn = sqlite3.connect('concierge.db')
-conn.row_factory = dict_factory
-cursor = conn.cursor()
+def get_collection(name: str):
+    url = f"{BASE_URL}/{name}?key={FIREBASE_API_KEY}"
+    res = httpx.get(url)
+    if res.status_code != 200:
+        return []
+    docs = res.json().get("documents", [])
+    results = []
+    for doc in docs:
+        fields = doc.get("fields", {})
+        cleaned = {}
+        for k, v in fields.items():
+            for val_type in ("stringValue", "integerValue", "doubleValue", "booleanValue", "timestampValue"):
+                if val_type in v:
+                    cleaned[k] = v[val_type]
+                    break
+        results.append(cleaned)
+    return results
 
-cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-tables = [r['name'] for r in cursor.fetchall()]
+data = {
+    "users": get_collection("users"),
+    "travel_preferences": get_collection("travel_preferences"),
+    "itineraries": get_collection("itineraries"),
+    "flights": get_collection("flights"),
+    "hotel_bookings": get_collection("hotel_bookings"),
+}
 
-data = {}
-for table in tables:
-    try:
-        cursor.execute(f"SELECT * FROM {table}")
-        data[table] = cursor.fetchall()
-    except Exception as e:
-        data[table] = str(e)
-
-print(json.dumps(data, indent=2, default=str))
+print(json.dumps(data, indent=2))

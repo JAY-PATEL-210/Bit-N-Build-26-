@@ -65,6 +65,7 @@ export interface Flight {
   gate?: string;
   departureTime?: string;
   arrivalTime?: string;
+  itineraryId?: string;
 }
 
 export interface AlternativeFlight {
@@ -103,6 +104,7 @@ export interface HotelBooking {
   originalCheckOut?: string;
   modifiedCheckIn?: string;
   pricePerNight?: number;
+  price?: number;
   currency?: string;
   actionTaken?: HotelAction;
 }

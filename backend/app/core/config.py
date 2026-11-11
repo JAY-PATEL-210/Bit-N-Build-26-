@@ -25,8 +25,12 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Autonomous Travel-Disruption Concierge"
     API_V1_STR: str = "/api"
 
-    # Database -- SQLite by default for hackathon, override with DATABASE_URL for PostgreSQL
-    DATABASE_URL: str = "sqlite:///./concierge.db"
+    # Database -- In-memory fallback for local session, Firebase Firestore is primary database
+    DATABASE_URL: str = "sqlite:///:memory:"
+
+    # Firebase
+    FIREBASE_PROJECT_ID: str = "pankti-56227"
+    FIREBASE_API_KEY: str = "AIzaSyBiVJD488-syt7E2l0KkYBSmGEsR1Xl7XU"
 
     # CORS
     CORS_ORIGINS: str = "*"

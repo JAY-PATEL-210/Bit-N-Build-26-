@@ -1,155 +1,250 @@
-// Owner: Member B (Frontend Systems / Interaction & Demo)
-// Role-based Authentication Service: Full backend integration with resilient fallback
+// Role-based Authentication Service: Firebase Authentication & Firestore
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  updateProfile,
+} from 'firebase/auth';
+import {
+  collection,
+  doc,
+  getDoc,
+  setDoc,
+  getDocs,
+  query,
+  where,
+  serverTimestamp,
+} from 'firebase/firestore';
+import { auth, db, cleanFirestoreData } from '../lib/firebase';
 import { ApiResponse, AuthResponse, LoginPayload, SignupPayload, User } from '../types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 const CURRENT_USER_KEY = 'concierge_current_user';
-const USERS_STORE_KEY = 'concierge_users';
-const API_TIMEOUT = 5000; // 5 seconds — sufficient for cold start
 
-function getStoredUsers(): User[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem(USERS_STORE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
+// Seeded user passwords for seamless first-time sync to Firebase Auth
+const SEED_PASSWORDS: Record<string, string> = {
+  'traveler.ahmedabad@routepilot.com': 'Travel@123',
+  'traveler.mumbai@routepilot.com': 'Travel@456',
+  'traveler.delhi@routepilot.com': 'Travel@789',
+  'traveler.bangalore@routepilot.com': 'Travel@321',
+  'agency.alpha@routepilot.com': 'Agency@123',
+  'agency.beta@routepilot.com': 'Agency@456',
+  'agency.gamma@routepilot.com': 'Agency@789',
+};
+
+function formatEmail(input: string): string {
+  const trimmed = input.trim().toLowerCase();
+  if (!trimmed.includes('@')) {
+    return `${trimmed}@routepilot.com`;
   }
+  return trimmed;
 }
 
-function saveUser(user: User): void {
+function saveUserToStorage(user: User): void {
   if (typeof window === 'undefined') return;
   try {
-    const users = getStoredUsers();
-    const filtered = users.filter((u) => u.email.toLowerCase() !== user.email.toLowerCase());
-    localStorage.setItem(USERS_STORE_KEY, JSON.stringify([...filtered, user]));
     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
   } catch {
-    // local storage write failed
+    // Ignore storage errors
   }
 }
 
 export const authService = {
   /**
-   * Role-based signup for TRAVELER or COMPANY
-   * API: POST /api/auth/signup
+   * Role-based signup for TRAVELER or COMPANY using Firebase Auth + Firestore
    */
   async signup(payload: SignupPayload): Promise<ApiResponse<AuthResponse>> {
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
-      const res = await fetch(`${API_BASE}/api/auth/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-      
-      const json = await res.json();
-      if (json.success && json.data) {
-        saveUser(json.data.user);
-        return json;
+      const email = formatEmail(payload.email);
+      const password = payload.password || 'RoutePilot@2026';
+
+      // 1. Create or retrieve account in Firebase Auth
+      let fbUser;
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        fbUser = userCredential.user;
+      } catch (authErr: any) {
+        if (authErr.code === 'auth/email-already-in-use') {
+          // If already in Firebase Auth (e.g. from previous attempt), sign in with the provided password
+          try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            fbUser = userCredential.user;
+          } catch {
+            throw authErr;
+          }
+        } else {
+          throw authErr;
+        }
       }
-      // Return backend error response
-      return {
-        success: false,
-        data: null,
-        error: json.error || { code: 'SIGNUP_FAILED', message: 'Signup failed. Please try again.' },
-      };
-    } catch (err: any) {
-      // Network error — backend offline
-      console.warn('Signup: Backend unavailable, using local fallback');
+
+      if (payload.name) {
+        try {
+          await updateProfile(fbUser, { displayName: payload.name });
+        } catch {
+          // Ignore non-fatal display name update error
+        }
+      }
+
+      // 2. Persist clean profile document to Firestore (omitting undefined fields)
       const newUser: User = {
-        id: `USER-${Date.now().toString().slice(-5)}`,
+        id: fbUser.uid,
         email: payload.email,
         role: payload.role,
-        name: payload.name || 'Traveler',
-        phone: payload.phone,
-        companyName: payload.companyName,
-        airlineCode: payload.airlineCode,
+        name: payload.name || (payload.role === 'COMPANY' ? 'Airline Partner' : 'Traveler'),
+        ...(payload.phone ? { phone: payload.phone } : {}),
+        ...(payload.companyName ? { companyName: payload.companyName } : {}),
+        ...(payload.airlineCode ? { airlineCode: payload.airlineCode } : {}),
       };
-      saveUser(newUser);
+
+      const firestoreUserData = cleanFirestoreData({
+        ...newUser,
+        createdAt: serverTimestamp(),
+      });
+
+      await setDoc(doc(db, 'users', fbUser.uid), firestoreUserData, { merge: true });
+
+      // 3. Create default travel preferences in Firestore for Travelers
+      if (payload.role === 'TRAVELER') {
+        const prefsData = cleanFirestoreData({
+          id: `PREF-${fbUser.uid}`,
+          userId: fbUser.uid,
+          autonomousRebooking: true,
+          autonomousHotelModification: true,
+          preferredCabin: 'ECONOMY',
+          maxAdditionalFare: 20000,
+          currency: 'INR',
+          minConnectionMinutes: 90,
+          createdAt: serverTimestamp(),
+        });
+        await setDoc(doc(db, 'travel_preferences', `PREF-${fbUser.uid}`), prefsData, { merge: true });
+      }
+
+      const token = await fbUser.getIdToken();
+      saveUserToStorage(newUser);
+
       return {
         success: true,
         data: {
           user: newUser,
-          token: `mock-jwt-${newUser.role.toLowerCase()}-${newUser.id}`,
+          token,
         },
         error: null,
+      };
+    } catch (err: any) {
+      console.error('Firebase Signup error:', err);
+      let message = 'Signup failed. Please try again.';
+      if (err.code === 'auth/email-already-in-use') {
+        message = 'This email is already registered. Please log in.';
+      } else if (err.code === 'auth/weak-password') {
+        message = 'Password should be at least 6 characters.';
+      } else if (err.code === 'auth/invalid-email') {
+        message = 'Invalid email address format.';
+      } else if (err.message) {
+        message = err.message;
+      }
+
+      return {
+        success: false,
+        data: null,
+        error: {
+          code: err.code || 'SIGNUP_FAILED',
+          message,
+        },
       };
     }
   },
 
   /**
-   * Role-agnostic login
-   * API: POST /api/auth/login
+   * Role-agnostic login using Firebase Authentication & Firestore database
    */
   async login(payload: LoginPayload): Promise<ApiResponse<AuthResponse>> {
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
-      const res = await fetch(`${API_BASE}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
+      const email = formatEmail(payload.email);
+      const password = payload.password || '';
 
-      const json = await res.json();
-      if (json.success && json.data) {
-        saveUser(json.data.user);
-        return json;
+      let fbUser;
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        fbUser = userCredential.user;
+      } catch (authErr: any) {
+        // If account does not exist in Firebase Auth yet, check if it's one of the seeded demo accounts
+        const seedPwd = SEED_PASSWORDS[email];
+        if (seedPwd && (password === seedPwd || !password)) {
+          // Provision in Firebase Auth with the seed password
+          try {
+            const newCred = await createUserWithEmailAndPassword(auth, email, seedPwd);
+            fbUser = newCred.user;
+          } catch {
+            const cred = await signInWithEmailAndPassword(auth, email, seedPwd);
+            fbUser = cred.user;
+          }
+        } else {
+          throw authErr;
+        }
       }
-      // Return backend error (invalid credentials, etc.)
+
+      // Fetch user profile from Firestore
+      let userDoc = await getDoc(doc(db, 'users', fbUser.uid));
+      let user: User;
+
+      if (userDoc.exists()) {
+        user = userDoc.data() as User;
+      } else {
+        // Look up by email or username in Firestore
+        const qEmail = query(collection(db, 'users'), where('email', '==', email));
+        const snap = await getDocs(qEmail);
+
+        if (!snap.empty) {
+          user = snap.docs[0].data() as User;
+          await setDoc(doc(db, 'users', fbUser.uid), cleanFirestoreData({ ...user, id: fbUser.uid }), { merge: true });
+        } else {
+          const username = payload.email.trim().toLowerCase();
+          const qUser = query(collection(db, 'users'), where('username', '==', username));
+          const snapUser = await getDocs(qUser);
+
+          if (!snapUser.empty) {
+            user = snapUser.docs[0].data() as User;
+            await setDoc(doc(db, 'users', fbUser.uid), cleanFirestoreData({ ...user, id: fbUser.uid }), { merge: true });
+          } else {
+            user = {
+              id: fbUser.uid,
+              email: payload.email,
+              role: payload.role || (payload.email.startsWith('agency') ? 'COMPANY' : 'TRAVELER'),
+              name: fbUser.displayName || (payload.role === 'COMPANY' ? 'Airline Partner' : 'Traveler'),
+            };
+            await setDoc(doc(db, 'users', fbUser.uid), cleanFirestoreData(user), { merge: true });
+          }
+        }
+      }
+
+      const token = await fbUser.getIdToken();
+      saveUserToStorage(user);
+
+      return {
+        success: true,
+        data: {
+          user,
+          token,
+        },
+        error: null,
+      };
+    } catch (err: any) {
+      console.error('Firebase Login error:', err);
+      let message = 'Access Denied: Invalid email or password.';
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+        message = 'Invalid email or password. Please verify your credentials.';
+      } else if (err.code === 'auth/too-many-requests') {
+        message = 'Too many failed login attempts. Please try again later.';
+      } else if (err.message) {
+        message = err.message;
+      }
+
       return {
         success: false,
         data: null,
-        error: json.error || { code: 'AUTH_FAILED', message: 'Login failed. Please check your credentials.' },
-      };
-    } catch (err: any) {
-      // Network error — backend offline, use local fallback
-      console.warn('Login: Backend unavailable, using local fallback');
-
-      const emailLower = payload.email.trim().toLowerCase();
-      const providedPassword = (payload.password || '').trim();
-
-      const DEMO_USERS = [
-        { email: 'traveler.ahmedabad', pwd: 'Travel@123', name: 'Traveler A', role: 'TRAVELER', id: 'USR-TRV-A' },
-        { email: 'traveler.mumbai', pwd: 'Travel@456', name: 'Traveler B', role: 'TRAVELER', id: 'USR-TRV-B' },
-        { email: 'traveler.delhi', pwd: 'Travel@789', name: 'Traveler C', role: 'TRAVELER', id: 'USR-TRV-C' },
-        { email: 'traveler.bangalore', pwd: 'Travel@321', name: 'Traveler D', role: 'TRAVELER', id: 'USR-TRV-D' },
-        { email: 'agency.alpha', pwd: 'Agency@123', name: 'Agency Alpha', role: 'COMPANY', id: 'USR-AGENCY-A', airlineCode: 'AA', companyName: 'Alpha Travels' },
-        { email: 'agency.beta', pwd: 'Agency@456', name: 'Agency Beta', role: 'COMPANY', id: 'USR-AGENCY-B', airlineCode: 'BB', companyName: 'Beta Travels' },
-      ];
-
-      const foundUser = DEMO_USERS.find(u => u.email === emailLower && u.pwd === providedPassword);
-
-      if (!foundUser) {
-        return {
-          success: false,
-          data: null,
-          error: {
-            code: 'INVALID_CREDENTIALS',
-            message: 'Access Denied: Invalid Credentials.',
-          },
-        };
-      }
-      
-      const user: User = {
-        id: foundUser.id,
-        email: foundUser.email,
-        role: foundUser.role as User['role'],
-        name: foundUser.name,
-        companyName: foundUser.companyName,
-        airlineCode: foundUser.airlineCode,
-      };
-      saveUser(user);
-      return {
-        success: true,
-        data: { user, token: `mock-jwt-${user.role.toLowerCase()}-${user.id}` },
-        error: null,
+        error: {
+          code: err.code || 'INVALID_CREDENTIALS',
+          message,
+        },
       };
     }
   },
@@ -164,12 +259,17 @@ export const authService = {
     }
   },
 
-  logout(): void {
+  async logout(): Promise<void> {
+    try {
+      await signOut(auth);
+    } catch {
+      // Ignore signOut errors
+    }
     if (typeof window === 'undefined') return;
     try {
       localStorage.removeItem(CURRENT_USER_KEY);
     } catch {
-      // Local storage clear failed
+      // Ignore
     }
   },
 };

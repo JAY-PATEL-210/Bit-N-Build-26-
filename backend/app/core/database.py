@@ -4,15 +4,19 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from app.core.config import settings
 
 # ── Engine ──────────────────────────────────────────────────────────────────
+from sqlalchemy.pool import StaticPool
+
 _connect_args = {}
+_engine_kwargs = {"echo": False}
 if settings.DATABASE_URL.startswith("sqlite"):
     _connect_args = {"check_same_thread": False}
+    if ":memory:" in settings.DATABASE_URL:
+        _engine_kwargs["poolclass"] = StaticPool
 
 engine = create_engine(
     settings.DATABASE_URL,
     connect_args=_connect_args,
-    pool_pre_ping=True,
-    echo=False,
+    **_engine_kwargs,
 )
 
 # Enable WAL mode + foreign keys for SQLite

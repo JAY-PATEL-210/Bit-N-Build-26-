@@ -57,8 +57,8 @@ export default function SignupPage() {
       setError('Please enter your email address.');
       return;
     }
-    if (!trimmedPassword || trimmedPassword.length < 4) {
-      setError('Password must be at least 4 characters.');
+    if (!trimmedPassword || trimmedPassword.length < 6) {
+      setError('Password must be at least 6 characters.');
       return;
     }
 
